@@ -26,8 +26,8 @@ For this, you need to have access to OCI console and create your dev and server 
 
 
  1. Create images from the above links. [Oracle guide](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/imageimportexport.htm#Importing). The following are Object Storage URLs for machines
-    - Dev-Machine:      [Image-Link](https://github.com/intel/linux-sgx)
-    - Server-Machines:  [Image-Link](https://objectstorage.us-sanjose-1.oraclecloud.com/p/eVWpd7VNC2M22JlQ8V_FmzXK6FpoZs-tvRiY6031RT1ebucBnyQfPf4VxM_N0Qwq/n/ax8oq4eg8tc3/b/expo_bucket/o/sgx_image_export)
+    - Dev-Machine:      [Image-Link](https://objectstorage.us-phoenix-1.oraclecloud.com/p/jGPwGQ_jBBTtbtnKBSrP5EUoOE1HRSI2Q3WAWzdJ2F42lvMSZ9EcbbhmA0AYPwcM/n/ax8oq4eg8tc3/b/expo_bucket/o/eurosys-dev-image)
+    - Server-Machines:  [Image-Link](https://objectstorage.us-phoenix-1.oraclecloud.com/p/UTEX-ZOq5ovW31Inn_1yrTLS7hW9Tj4Gx4Hhx7Sfpq_a42p8PA2SgrUzWsSKyIwM/n/ax8oq4eg8tc3/b/expo_bucket/o/eurosys-machine-image)
 2. Create one Dev-Machine and as many as you need server machines (based on the scale of experiments you need to reproduce) using [Oracle guide](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/launchinginstance.htm#linux__linux-create)
 
 
