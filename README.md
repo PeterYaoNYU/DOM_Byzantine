@@ -84,7 +84,7 @@ Before running `startResilientDB.sh` script you need to adjust `config.h` file t
 | PBFT-EA            | A2M                       |
 | MinBFT             | MinBFT                    |
 | MinZZ              | MinZZ                     |
-| OPBFT-EA           | CONTRAST + A2M            |
+| OPBFT-EA           | CONTRUST + A2M            |
 | Flexi-BFT          | FLEXI_PBFT                |
 | Flexi-ZZ           | FLEXI_ZZ                  |
 | PBFT               | PBFT                      |
