@@ -41,7 +41,7 @@ For this, you need to have access to an OCI console. Following steps state how t
         mkdir results
         
 * We provide a script **startResilientDB.sh** to compile and run the code. To run **ResilientDB** on a cloud provider such as AWS, OCI, or Google Cloud, you need to specify the **Private IP Addresses** of each replica. 
-* The code will be compiled on the machine that runs the script **startResilientDB.sh** (in our case dev-machine) and sends the binary files over SSH to the **resilientdb** folder in all the other nodes (servers and clients). The directory which contains the **resilientdb** in each node should be set as ``home_directory`` in the following files as:
+* The code will be compiled on the machine that runs the script **startResilientDB.sh** (in our case dev-machine) and sends the binary files over SSH to the **resilientdb** folder in all the other nodes (servers and clients). The directory which contains the **resilientdb** in each node should be set as ``home_directory`` in the following files:
     1. scripts/scp_binaries.sh
     2. scripts/scp_results.sh
     3. scripts/simRun.py
