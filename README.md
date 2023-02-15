@@ -11,7 +11,7 @@ The code is available at [link](https://github.com/msadoghi/resdb-sgx-eurosys). 
 The dev-machine needs to have access to the source code, resilientdb dependencies, and SGX dependencies. 
 If you have access to Oracle Cloud Infrastructure (OCI) machines, we provide ready-to-use images for both dev-machine and replica. Later in this document, we explain how to use these images. You also can setup the code and dependencies on your machine or the cloud provider of your choice, which may necessitate specific installation. 
 
-**Note**: All developement and experimentation was done on Ubuntu 20.04.
+**Note**: All developement and experimentation was done on Ubuntu 18.04.
 
 ### Setup without OCI images
 1. Clone the code base from this [Repo](https://github.com/msadoghi/resdb-sgx-eurosys)
