@@ -11,7 +11,7 @@ The code is available at [link](https://github.com/msadoghi/resdb-sgx-eurosys). 
 The dev-machine needs to have access to the source code, resilientdb dependencies, and SGX dependencies. 
 If you have access to Oracle Cloud Infrastructure (OCI) machines, we provide ready-to-use images for both dev-machine and replica. Later in this document, we explain how to use these images. You also can setup the code and dependencies on your machine or the cloud provider of your choice, which may necessitate specific installation. 
 
-**Note**: All developement and experimentation was done on Ubuntu 18.04.
+**Note**: All developement and experimentation was done on Ubuntu 18.04.6 LTS.
 
 ### Setup without OCI images
 1. Clone the code base from this [Repo](https://github.com/msadoghi/resdb-sgx-eurosys)
@@ -74,9 +74,11 @@ In the above example, the `startResilientDB.sh` scripts needs to have 4 IP addre
 ## Configurations for different Protocols
 
 Before running `startResilientDB.sh` script, you need to adjust the `config.h` file to set necessary configuration parameters for the desired protocol/experiment. Following are some of the important parameters that may change in different experiments:
- - **NODE_CNT**: which refers to the number of replicas 
- - **CLIENT_NODE_CNT**: which refers to the number of clients (for most of the experiments, we set it to 8) 
- - **SGX**: in order to run any protocol that uses hardware assist, you need to set this to true (all protocols except PBFT and Zyzzyva)
+ - **NODE_CNT**: which refers to the number of replicas. 
+ - **CLIENT_NODE_CNT**: which refers to the number of clients (for most of the experiments, we set it to 8). 
+ - **SGX**: in order to run any protocol that uses hardware assist, you need to set this to true (all protocols except PBFT and Zyzzyva).
+ - **LOCAL_FAULT**: in order to run failure experiments for protocols stated in the paper.
+ - **TIMER_ON**: to start the timer for failure experiments.
  - The following table shows which parameter to set to true for each protocol: 
 
 | Syntax      | Description |
@@ -95,6 +97,8 @@ Before running `startResilientDB.sh` script, you need to adjust the `config.h` f
 
 To help identify which parameters need to be changed for running a specific protocol, we have created a directory ``sample_config`` that includes the sample configuration files for each protocol. These files can be used to run specific protocols, and the user needs to only reset the number of servers and clients as needed.
 
+### Result Interpretation
+To present average throughput and latency of replicas, for each run of an experiment, in the directory ``script``, we provide access to scripts ``results.sh`` and ``colorized_results.sh``.
 
 ---
 
