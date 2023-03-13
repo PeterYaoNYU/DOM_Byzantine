@@ -77,8 +77,8 @@ Before running `startResilientDB.sh` script, you need to adjust the `config.h` f
  - **NODE_CNT**: which refers to the number of replicas. 
  - **CLIENT_NODE_CNT**: which refers to the number of clients (for most of the experiments, we set it to 8). 
  - **SGX**: in order to run any protocol that uses hardware assist, you need to set this to true (all protocols except PBFT and Zyzzyva).
- - **LOCAL_FAULT**: in order to run failure experiments for protocols stated in the paper.
- - **TIMER_ON**: to start the timer for failure experiments.
+ - **LOCAL_FAULT**: set it to true for running failure experiments for protocols stated in the paper.
+ - **TIMER_ON**: set it to true to start the timer for failure experiments.
  - The following table shows which parameter to set to true for each protocol: 
 
 | Syntax      | Description |
