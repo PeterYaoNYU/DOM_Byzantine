@@ -114,7 +114,7 @@ pwd
 printf "${GREEN}Dependencies has been installed${NC}\n"
 
 printf "\nCreating config file...\n"
-scripts/make_config.sh ${replicas} ${clients}
+# scripts/make_config.sh ${replicas} ${clients}
 printf "${GREEN}Config file has been created${NC}\n"
 
 printf "\nCompiling ResilientDB...\n"
