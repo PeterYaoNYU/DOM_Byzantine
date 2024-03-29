@@ -39,12 +39,15 @@ int main(int argc, char *argv[])
 #endif
 
 #if GBFT
-  next_idx = g_node_id / gbft_cluster_size;
+    next_idx = g_node_id / gbft_cluster_size;
 #endif
 
     srand(seed);
     printf("Random seed: %ld\n", seed);
 
+    set_cpu_clock();
+    printf("CPU clock is:  %f\n", cpu_clock);
+    
     int64_t starttime;
     int64_t endtime;
     starttime = get_server_clock();

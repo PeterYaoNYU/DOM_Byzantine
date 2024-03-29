@@ -315,6 +315,8 @@ uint64_t get_commit_message_txn_id(uint64_t txn_id);
 uint64_t get_prep_message_txn_id(uint64_t txn_id);
 uint64_t get_checkpoint_message_txn_id(uint64_t txn_id);
 uint64_t get_execute_message_txn_id(uint64_t txn_id);
+extern double cpu_clock;
+void set_cpu_clock();
 
 
 class myrand

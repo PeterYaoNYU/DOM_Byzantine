@@ -90,11 +90,10 @@ void Thread::progress_stats()
             else
             {
                 stats.print(true);
+                uint64_t exec_thread = g_worker_thread_cnt + g_batching_thread_cnt + g_checkpointing_thread_cnt + g_execution_thread_cnt - 1;
+                SET_STATS(exec_thread, previous_interval_cross_shard_txn_cnt, stats._stats[exec_thread]->cross_shard_txn_cnt);
+                SET_STATS(exec_thread, previous_interval_txn_cnt, stats._stats[exec_thread]->txn_cnt);
             }
-            // uint64_t exec_thread = g_thread_cnt - g_checkpointing_thread_cnt - g_execution_thread_cnt;
-            uint64_t exec_thread = g_worker_thread_cnt + g_batching_thread_cnt + g_checkpointing_thread_cnt + g_execution_thread_cnt - 1;
-            SET_STATS(exec_thread, previous_interval_cross_shard_txn_cnt, stats._stats[exec_thread]->cross_shard_txn_cnt);
-            SET_STATS(exec_thread, previous_interval_txn_cnt, stats._stats[exec_thread]->txn_cnt);
         }
     }
 }

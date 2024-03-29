@@ -38,6 +38,8 @@
 #include "database.h"
 #include "hash_map.h"
 #include "hash_set.h"
+#include <nng/nng.h>
+#include <nng/protocol/pair0/pair.h>
 
 using namespace std;
 
@@ -57,7 +59,11 @@ class MessageQueue;
 class Client_query_queue;
 class Client_txn;
 class GeoBFTCommitCertificateMessage;
+
+// peter: not implemented?
+class PrepCertificateMessage;
 class ClientResponseMessage;
+class ClientQueryBatch;
 
 typedef uint32_t UInt32;
 typedef int32_t SInt32;

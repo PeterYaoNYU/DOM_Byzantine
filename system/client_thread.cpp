@@ -225,6 +225,14 @@ RC ClientThread::run()
 		if (addMore == g_batch_size)
 		{
 			bmsg->sign(next_node_id); // Sign the message.
+			string batchStr = "";
+			for (uint64_t i = 0; i < get_batch_size(); i++)
+			{
+				batchStr += bmsg->cqrySet[i]->getString();
+			}
+			string hash = calculateHash(batchStr);
+			// cout << next_node_id << "   " << hexStr(hash.c_str(), hash.length()) << endl;
+			client_responses_count.add(hash, 0);
 
 #if TIMER_ON
 			char *buf = create_msg_buffer(bmsg);
@@ -236,10 +244,7 @@ RC ClientThread::run()
 			delete_msg_buffer(buf);
 #endif // TIMER_ON
 
-			vector<uint64_t> dest;
-			dest.push_back(next_node_id);
-			msg_queue.enqueue(get_thd_id(), bmsg, dest);
-			dest.clear();
+			msg_queue.enqueue(get_thd_id(), bmsg, {next_node_id});
 
 			num_txns_sent += g_batch_size;
 			txns_sent[next_node] += g_batch_size;

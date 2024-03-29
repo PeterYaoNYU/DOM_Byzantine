@@ -419,6 +419,14 @@ void TxnManager::add_commit_msg(PBFTCommitMessage *pcmsg)
     commit_msgs.push_back((PBFTCommitMessage *)deepMsg);
     delete_msg_buffer(buf);
 }
+void TxnManager::add_prep_msg(PBFTPrepMessage *pcmsg)
+{
+    char *buf = create_msg_buffer(pcmsg);
+    Message *deepMsg = deep_copy_msg(buf, pcmsg);
+    deepMsg->return_node_id = pcmsg->return_node_id;
+    prep_msgs.push_back((PBFTPrepMessage *)deepMsg);
+    delete_msg_buffer(buf);
+}
 
 uint64_t TxnManager::decr_commit_rsp_cnt()
 {
@@ -433,11 +441,11 @@ uint64_t TxnManager::get_commit_rsp_cnt()
 
 /*****************************/
 
-//broadcasts prepare message to all nodes
+// broadcasts prepare message to all nodes
 void TxnManager::send_pbft_prep_msgs()
 {
-    //printf("%ld Send PBFT_PREP_MSG message to %d nodes\n", get_txn_id(), g_node_cnt - 1);
-    //fflush(stdout);
+    // printf("%ld Send PBFT_PREP_MSG message to %d nodes\n", get_txn_id(), g_node_cnt - 1);
+    // fflush(stdout);
 
     Message *msg = Message::create_message(this, PBFT_PREP_MSG);
     PBFTPrepMessage *pmsg = (PBFTPrepMessage *)msg;
@@ -469,11 +477,11 @@ void TxnManager::send_pbft_prep_msgs()
     dest.clear();
 }
 
-//broadcasts commit message to all nodes
+// broadcasts commit message to all nodes
 void TxnManager::send_pbft_commit_msgs()
 {
-    //cout << "Send PBFT_COMMIT_MSG messages " << get_txn_id() << "\n";
-    //fflush(stdout);
+    // cout << "Send PBFT_COMMIT_MSG messages " << get_txn_id() << "\n";
+    // fflush(stdout);
 
     Message *msg = Message::create_message(this, PBFT_COMMIT_MSG);
     PBFTCommitMessage *cmsg = (PBFTCommitMessage *)msg;
@@ -540,13 +548,21 @@ void TxnManager::release_all_messages(uint64_t txn_id)
             commit_msgs.erase(commit_msgs.begin());
             Message::release_message(cmsg);
         }
+
+        PBFTPrepMessage *pmsg;
+        while (prep_msgs.size() > 0)
+        {
+            pmsg = (PBFTPrepMessage *)this->prep_msgs[0];
+            prep_msgs.erase(prep_msgs.begin());
+            Message::release_message(pmsg);
+        }
     }
 #endif
 }
 
 #endif // !TESTING
 
-//broadcasts checkpoint message to all nodes
+// broadcasts checkpoint message to all nodes
 void TxnManager::send_checkpoint_msgs()
 {
     DEBUG("%ld Send PBFT_CHKPT_MSG message to %d\n nodes", get_txn_id(), g_node_cnt - 1);

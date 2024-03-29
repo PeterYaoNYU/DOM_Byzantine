@@ -80,6 +80,11 @@ runcl : $(OBJS_CL)
 ./obj/%.o: %.cpp
 	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
+<<<<<<< HEAD
+=======
+sgx:
+	cd enclave; $(MAKE)
+>>>>>>> eurosys/main
 .PHONY: clean
 clean:
 	rm -f obj/*.o obj/.depend rundb runcl runsq unit_test

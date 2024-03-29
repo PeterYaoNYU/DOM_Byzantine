@@ -27,7 +27,7 @@ void Timer::set_data(uint64_t tst, string hsh, Message *cqry)
 /************************************/
 
 /* Start the timer for this transaction.
-   To identify a txn we store the hash of the client request.	
+   To identify a txn we store the hash of the client request.
 */
 void ServerTimer::startTimer(string digest, Message *clqry)
 {
@@ -150,37 +150,97 @@ void ClientTimer::startTimer(uint64_t timestp, ClientQueryBatch *cqry)
 {
 	Timer *tmap = (Timer *)mem_allocator.alloc(sizeof(Timer));
 	new (tmap) Timer();
-	tmap->set_data(timestp, "A", cqry);
+	tmap->set_data(timestp, cqry->getHash(), cqry);
 
 	tlock.lock();
-	txn_map.push_back(tmap);
+	txn_map[cqry->getHash()] = tmap;
+	txn_map_sorted[timestp] = tmap;
 	// printf("added  %ld  %ld\n",cqry->txn_id, txn_map.size());
 	tlock.unlock();
 }
 
 /* When a txn completes, remove its timer. */
-void ClientTimer::endTimer(uint64_t timestp)
+void ClientTimer::endTimer(string hash)
 {
-	Timer *tmap;
 	tlock.lock();
-	for (uint64_t i = 0; i < txn_map.size(); i++)
+	if (txn_map.count(hash))
 	{
-		tmap = txn_map[i];
-		if (tmap->get_timestamp() == timestp)
-		{
-			txn_map.erase(txn_map.begin() + i);
-			Message::release_message(tmap->get_msg());
-			mem_allocator.free(tmap, sizeof(Timer));
-			// printf("remvd  %ld  %ld\n",tmap->get_msg()->txn_id, i);
-			break;
-		}
+		Timer *tmap = txn_map[hash];
+
+		txn_map_sorted.erase(txn_map_sorted.find(tmap->get_timestamp()));
+		txn_map.erase(hash);
+		Message::release_message(tmap->get_msg());
+		mem_allocator.free(tmap, sizeof(Timer));
+	}
+	else
+	{
+		// assert(0);
+		// printf("Already Removed\n");
 	}
 	tlock.unlock();
 }
 
+#if ZYZ
 /*
 	We need to find all the client requests for which the timer has expired.
-	Simplest way is to loop till first txn with difference between its 
+	Simplest way is to loop till first txn with difference between its
+	starting time and current time has not crossed the threshold.
+*/
+bool ClientTimer::checkTimer(ClientQueryBatch *&cbatch)
+{
+	Timer *tmap;
+	bool flag = false;
+
+	tlock.lock();
+	for (auto i = txn_map_sorted.begin(); i != txn_map_sorted.end(); i++)
+	{
+		tmap = i->second;
+		if (get_sys_clock() - tmap->get_timestamp() < CEXE_TIMEOUT)
+		{
+			break;
+		}
+		else
+		{
+
+			uint64_t required_responses = g_min_invalid_nodes * 2;
+
+			string batchStr = "";
+			ClientQueryBatch *timer_cbatch = (ClientQueryBatch *)tmap->get_msg();
+			// Allocate transaction manager for all the requests in batch.
+			for (uint64_t i = 0; i < get_batch_size(); i++)
+				batchStr += timer_cbatch->cqrySet[i]->getString();
+			string hash = timer_cbatch->getHash();
+			if (client_responses_count.get(hash) <= required_responses)
+			{
+				// TODO view change
+				// cout << "Should Do view change  " << client_responses_count.get(hash) << endl;
+				continue;
+			}
+			// Create a copy of this client batch.
+			char *buf = create_msg_buffer(tmap->get_msg());
+			cbatch = (ClientQueryBatch *)deep_copy_msg(buf, tmap->get_msg());
+			delete_msg_buffer(buf);
+
+			// Delete this entry from the timer.
+			txn_map.erase(tmap->get_hash());
+			txn_map_sorted.erase(txn_map_sorted.find(tmap->get_timestamp()));
+			Message::release_message(tmap->get_msg());
+			mem_allocator.free(tmap, sizeof(Timer));
+
+			// Found so return true.
+			flag = true;
+			// printf("sending Certificate  %ld\n", tmap->get_msg()->txn_id);
+			break;
+		}
+	}
+
+	tlock.unlock();
+	return flag;
+}
+#else
+/*
+	We need to find all the client requests for which the timer has expired.
+	Simplest way is to loop till first txn with difference between its
 	starting time and current time has not crossed the threshold.
 */
 bool ClientTimer::checkTimer(ClientQueryBatch *&cbatch)
@@ -210,14 +270,14 @@ bool ClientTimer::checkTimer(ClientQueryBatch *&cbatch)
 
 			// Found so return true.
 			flag = true;
-			printf("resending to primary  %ld\n",tmap->get_msg()->txn_id);
+			printf("resending to primary  %ld\n", tmap->get_msg()->txn_id);
 		}
 	}
 
 	tlock.unlock();
 	return flag;
 }
-
+#endif
 /* Fetches the first entry */
 Timer *ClientTimer::fetchPendingRequests()
 {

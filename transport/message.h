@@ -214,16 +214,18 @@ public:
     void release();
     string getString(uint64_t sender);
 
-    uint64 hashSize;
+    uint64_t hashSize; 
     string hash;
 
-    RC rc;
-
 #if CLIENT_RESPONSE_BATCH == true
-    Array<uint64_t> index;
     Array<uint64_t> client_ts;
 #else
     uint64_t client_startts;
+#endif
+
+#if SGX
+    uint64_t tee_signature_size;
+    string tee_signature;
 #endif
 
     uint64_t view; // primary node id
@@ -246,6 +248,7 @@ public:
     void sign(uint64_t dest_node = UINT64_MAX);
     bool validate();
     string getString();
+    string getHash();
 
     uint64_t return_node;
     uint64_t batch_size;
@@ -417,7 +420,6 @@ public:
 /****************************************/
 /*	GEO BFT SPECIFIC		*/
 /****************************************/
-
 #if GBFT
 class GeoBFTCommitCertificateMessage : public Message
 {

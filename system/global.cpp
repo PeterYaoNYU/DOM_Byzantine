@@ -68,8 +68,11 @@ UInt32 g_batching_thread_cnt = BATCH_THREAD_CNT;
 UInt32 g_checkpointing_thread_cnt = CHECKPOINT_THREAD_CNT;
 UInt32 g_execution_thread_cnt = EXECUTE_THREAD_CNT;
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> eurosys/main
 UInt32 g_rem_thread_cnt = REM_THREAD_CNT;
 UInt32 g_send_thread_cnt = SEND_THREAD_CNT;
 UInt32 g_total_thread_cnt = g_thread_cnt + g_rem_thread_cnt + g_send_thread_cnt;
@@ -329,7 +332,7 @@ uint64_t view_to_primary(uint64_t view, uint64_t node)
 {
 	return view;
 }
-#endif 
+#endif
 
 #if GBFT
 SpinLockSet<string> gbft_ccm_checklist;
@@ -438,8 +441,10 @@ double output_thd_idle_time[SEND_THREAD_CNT] = {0};
 double input_thd_idle_time[REM_THREAD_CNT] = {0};
 
 // Maps for client response couting
-SpinLockMap<uint64_t, uint64_t> client_responses_count;
+// from original resdb 3.0
+// SpinLockMap<uint64_t, uint64_t> client_responses_count;
 SpinLockMap<uint64_t, ClientResponseMessage *> client_responses_directory;
+SpinLockMap<string, uint64_t> client_responses_count;
 
 // Payload for messages.
 #if PAYLOAD_ENABLE

@@ -18,7 +18,7 @@ void Transport::read_ifconfig(const char *ifaddr_file)
     string line;
     while (getline(fin, line))
     {
-        //memcpy(ifaddr[cnt],&line[0],12);
+        // memcpy(ifaddr[cnt],&line[0],12);
         ifaddr[cnt] = new char[line.length() + 1];
         strcpy(ifaddr[cnt], &line[0]);
         printf("%ld: %s\n", cnt, ifaddr[cnt]);
@@ -56,7 +56,7 @@ string Transport::get_path()
 
 Socket *Transport::get_socket()
 {
-    //Socket * socket = new Socket;
+    // Socket * socket = new Socket;
     Socket *socket = (Socket *)mem_allocator.align_alloc(sizeof(Socket));
     new (socket) Socket();
     int timeo = 1000;  // timeout in ms
@@ -120,7 +120,7 @@ Socket *Transport::bind(uint64_t port_id)
 #else
 #if ENVIRONMENT_EC2
     sprintf(socket_name, "tcp://0.0.0.0:%ld", port_id);
-    //sprintf(socket_name,"tcp://eth0:%ld",port_id);
+    // sprintf(socket_name,"tcp://eth0:%ld",port_id);
 #else
     sprintf(socket_name, "tcp://%s:%ld", ifaddr[g_node_id], port_id);
 #endif
@@ -144,7 +144,7 @@ Socket *Transport::connect(uint64_t dest_id, uint64_t port_id)
 #else
 #if ENVIRONMENT_EC2
     sprintf(socket_name, "tcp://%s;%s:%ld", ifaddr[g_node_id], ifaddr[dest_id], port_id);
-    //sprintf(socket_name,"tcp://eth0;%s:%ld",ifaddr[dest_id],port_id);
+    // sprintf(socket_name,"tcp://eth0;%s:%ld",ifaddr[dest_id],port_id);
 #else
     sprintf(socket_name, "tcp://%s;%s:%ld", ifaddr[g_node_id], ifaddr[dest_id], port_id);
 #endif
@@ -161,12 +161,12 @@ Socket *Transport::connect(uint64_t dest_id, uint64_t port_id)
 
 void Transport::init()
 {
-
+    client_input_threads = REM_THREAD_CNT_FOR_CLIENTS;
     /*
-        * S, R number of seding and receving threads 
-        * Create S listening sockets for each node in the system, put them in queues for receiveing threads
-        * Crate S sending sockets pair with dest_id and put them in hash map that keys are (node_id, thd_id) and value is socket
-    */
+     * S, R number of seding and receving threads
+     * Create S listening sockets for each node in the system, put them in queues for receiveing threads
+     * Crate S sending sockets pair with dest_id and put them in hash map that keys are (node_id, thd_id) and value is socket
+     */
     _sock_cnt = get_socket_count();
 
     rr = 0;
@@ -183,19 +183,21 @@ void Transport::init()
         // Listening ports
         if (ISCLIENTN(node_id))
         {
-            for (uint64_t client_thread_id = g_client_thread_cnt + g_client_rem_thread_cnt; client_thread_id < g_client_thread_cnt + g_client_rem_thread_cnt + g_client_send_thread_cnt; client_thread_id++)
+            // for (uint64_t client_thread_id = g_client_thread_cnt + g_client_rem_thread_cnt; client_thread_id < g_client_thread_cnt + g_client_rem_thread_cnt + g_client_send_thread_cnt; client_thread_id++)
+            for (uint64_t client_thread_id = 0; client_thread_id < g_client_send_thread_cnt; client_thread_id++)
             {
-                uint64_t port_id = get_port_id(node_id, g_node_id, client_thread_id % g_client_send_thread_cnt);
+                uint64_t port_id = get_port_id(node_id, g_node_id, client_thread_id);
                 Socket *sock = bind(port_id);
-                if (!ISSERVER)
+                if (ISCLIENT)
                 {
                     recv_sockets.push_back(sock);
                 }
                 else
                 {
-                    recv_sockets_clients.push_back(sock);
+                    recv_sockets_clients[node_id % client_input_threads].push_back(sock);
                 }
                 DEBUG("Socket insert: {%ld}: %ld\n", node_id, (uint64_t)sock);
+                printf("client {%ld} Socket insert to %ld\n", node_id, node_id % client_input_threads);
             }
         }
         else
@@ -206,23 +208,26 @@ void Transport::init()
                 uint64_t port_id = get_port_id(node_id, g_node_id, server_thread_id);
                 Socket *sock = bind(port_id);
                 // Sockets for clients and servers in different sets.
-                if (!ISSERVER)
+                if (ISCLIENT)
                 {
                     recv_sockets.push_back(sock);
                 }
                 else
                 {
-                    recv_sockets_servers[node_id % (g_rem_thread_cnt - 1)].push_back(sock);
+                    recv_sockets_servers[node_id % (g_rem_thread_cnt - client_input_threads)].push_back(sock);
                 }
                 DEBUG("Socket insert: {%ld}: %ld\n", node_id, (uint64_t)sock);
+                printf("server {%ld} Socket insert to %ld  sock:%ld\n", node_id, node_id % (g_rem_thread_cnt - client_input_threads), (uint64_t)sock);
+                // printf("node_id:{%ld} g_rem_thread_cnt:%d  client_input_threads:%ld  \n", node_id,  g_rem_thread_cnt, client_input_threads);
             }
         }
         // Sending ports
-        if (ISCLIENTN(g_node_id))
+        if (ISCLIENT)
         {
-            for (uint64_t client_thread_id = g_client_thread_cnt + g_client_rem_thread_cnt; client_thread_id < g_client_thread_cnt + g_client_rem_thread_cnt + g_client_send_thread_cnt; client_thread_id++)
+            // for (uint64_t client_thread_id = g_client_thread_cnt + g_client_rem_thread_cnt; client_thread_id < g_client_thread_cnt + g_client_rem_thread_cnt + g_client_send_thread_cnt; client_thread_id++)
+            for (uint64_t client_thread_id = 0; client_thread_id < g_client_send_thread_cnt; client_thread_id++)
             {
-                uint64_t port_id = get_port_id(g_node_id, node_id, client_thread_id % g_client_send_thread_cnt);
+                uint64_t port_id = get_port_id(g_node_id, node_id, client_thread_id);
                 std::pair<uint64_t, uint64_t> sender = std::make_pair(node_id, client_thread_id);
                 Socket *sock = connect(node_id, port_id);
                 send_sockets.insert(std::make_pair(sender, sock));
@@ -231,9 +236,10 @@ void Transport::init()
         }
         else
         {
-            for (uint64_t server_thread_id = g_thread_cnt + g_rem_thread_cnt; server_thread_id < g_thread_cnt + g_rem_thread_cnt + g_send_thread_cnt; server_thread_id++)
+            // for (uint64_t server_thread_id = g_thread_cnt + g_rem_thread_cnt; server_thread_id < g_thread_cnt + g_rem_thread_cnt + g_send_thread_cnt; server_thread_id++)
+            for (uint64_t server_thread_id = 0; server_thread_id < g_send_thread_cnt; server_thread_id++)
             {
-                uint64_t port_id = get_port_id(g_node_id, node_id, server_thread_id % g_send_thread_cnt);
+                uint64_t port_id = get_port_id(g_node_id, node_id, server_thread_id);
                 std::pair<uint64_t, uint64_t> sender = std::make_pair(node_id, server_thread_id);
                 Socket *sock = connect(node_id, port_id);
                 send_sockets.insert(std::make_pair(sender, sock));
@@ -248,9 +254,11 @@ void Transport::init()
 // rename sid to send thread id
 void Transport::send_msg(uint64_t send_thread_id, uint64_t dest_node_id, void *sbuf, int size)
 {
+    uint64_t abs_thd_id = send_thread_id - g_this_thread_cnt - g_this_rem_thread_cnt;
+
     uint64_t starttime = get_sys_clock();
 
-    Socket *socket = send_sockets.find(std::make_pair(dest_node_id, send_thread_id))->second;
+    Socket *socket = send_sockets.find(std::make_pair(dest_node_id, abs_thd_id))->second;
     // Copy messages to nanomsg buffer
     DEBUG("%ld Sending batch of %d bytes to node %ld on socket %ld\n", send_thread_id, size, dest_node_id, (uint64_t)socket);
     INC_GLOB_STATS_ARR(bytes_sent, dest_node_id, size);
@@ -329,7 +337,7 @@ void Transport::send_msg(uint64_t send_thread_id, uint64_t dest_node_id, void *s
     }
 #endif
 
-    //nn_freemsg(sbuf);
+    // nn_freemsg(sbuf);
     DEBUG("%ld Batch of %d bytes sent to node %ld\n", send_thread_id, size, dest_node_id);
 
     INC_STATS(send_thread_id, msg_send_time, get_sys_clock() - starttime);
@@ -339,6 +347,8 @@ void Transport::send_msg(uint64_t send_thread_id, uint64_t dest_node_id, void *s
 // Listens to sockets for messages from other nodes
 std::vector<Message *> *Transport::recv_msg(uint64_t thd_id)
 {
+    uint64_t abs_thd_id = thd_id - g_this_thread_cnt;
+
     int bytes = 0;
     void *buf = NULL;
     std::vector<Message *> *msgs = NULL;
@@ -348,7 +358,7 @@ std::vector<Message *> *Transport::recv_msg(uint64_t thd_id)
     if (!ISSERVER)
     {
         uint64_t rand = (starttime % recv_sockets.size()) / g_this_rem_thread_cnt;
-        ctr = thd_id % g_this_rem_thread_cnt;
+        ctr = abs_thd_id;
 
         if (ctr >= recv_sockets.size())
             return msgs;
@@ -365,14 +375,13 @@ std::vector<Message *> *Transport::recv_msg(uint64_t thd_id)
     else
     {
         // One thread manages client sockets, while others handles server sockets.
-        if (thd_id % g_this_rem_thread_cnt == 0)
+        if (abs_thd_id < client_input_threads)
         {
-            ctr = get_next_socket(thd_id, recv_sockets_clients.size());
+            ctr = get_next_socket(thd_id, recv_sockets_clients[abs_thd_id].size());
         }
         else
         {
-            uint64_t abs_tid = thd_id % (g_rem_thread_cnt - 1);
-            ctr = get_next_socket(thd_id, recv_sockets_servers[abs_tid].size());
+            ctr = get_next_socket(thd_id, recv_sockets_servers[abs_thd_id - client_input_threads].size());
         }
     }
     start_ctr = ctr;
@@ -388,24 +397,22 @@ std::vector<Message *> *Transport::recv_msg(uint64_t thd_id)
             ctr = (ctr + g_this_rem_thread_cnt);
 
             if (ctr >= recv_sockets.size())
-                ctr = (thd_id % g_this_rem_thread_cnt) % recv_sockets.size();
+                ctr = (abs_thd_id) % recv_sockets.size();
             if (ctr == start_ctr)
                 break;
         }
         else
         { // Only servers.
-            if (thd_id % g_this_rem_thread_cnt == 0)
+            if (abs_thd_id < client_input_threads)
             {
-                socket = recv_sockets_clients[ctr];
+                socket = recv_sockets_clients[abs_thd_id][ctr];
             }
             else
             {
-                uint64_t abs_tid = thd_id % (g_rem_thread_cnt - 1);
-                socket = recv_sockets_servers[abs_tid][ctr];
+                socket = recv_sockets_servers[abs_thd_id - client_input_threads][ctr];
             }
             bytes = socket->sock.recv(&buf, NNG_FLAG_ALLOC | NNG_FLAG_NONBLOCK);
         }
-
         if (bytes > 0)
         {
             break;
@@ -414,14 +421,14 @@ std::vector<Message *> *Transport::recv_msg(uint64_t thd_id)
         {
             if (ISSERVER)
             {
-                if (thd_id % g_this_rem_thread_cnt == 0)
+                if (thd_id < client_input_threads)
                 {
-                    ctr = get_next_socket(thd_id, recv_sockets_clients.size());
+                    ctr = get_next_socket(thd_id, recv_sockets_clients[abs_thd_id].size());
                 }
                 else
                 {
-                    uint64_t abs_tid = thd_id % (g_rem_thread_cnt - 1);
-                    ctr = get_next_socket(thd_id, recv_sockets_servers[abs_tid].size());
+
+                    ctr = get_next_socket(thd_id, recv_sockets_servers[abs_thd_id - client_input_threads].size());
                 }
                 if (ctr == start_ctr)
                     break;

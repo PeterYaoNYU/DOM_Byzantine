@@ -46,8 +46,9 @@ private:
 	std::vector<Socket *> recv_sockets;
 
 	// To be used replicas.
-	std::vector<Socket *> recv_sockets_clients;
-	std::vector<Socket *> recv_sockets_servers[REM_THREAD_CNT - 1];
+	uint64_t client_input_threads;
+	std::vector<Socket *> recv_sockets_clients[REM_THREAD_CNT_FOR_CLIENTS];
+	std::vector<Socket *> recv_sockets_servers[REM_THREAD_CNT - REM_THREAD_CNT_FOR_CLIENTS];
 
 	uint64_t _node_cnt;
 	uint64_t _sock_cnt;

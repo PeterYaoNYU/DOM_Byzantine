@@ -38,11 +38,12 @@ public:
 class ClientTimer
 {
 	// Stores time of arrival for each transaction.
-	std::vector<Timer *> txn_map;
+	std::unordered_map<string, Timer *> txn_map;
+	std::map<uint64_t, Timer *> txn_map_sorted;
 
 public:
 	void startTimer(uint64_t timestp, ClientQueryBatch *cqry);
-	void endTimer(uint64_t timestp);
+	void endTimer(string hash);
 	bool checkTimer(ClientQueryBatch *&cbatch);
 	Timer *fetchPendingRequests();
 	void removeAllTimers();

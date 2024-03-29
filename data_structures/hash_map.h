@@ -30,7 +30,6 @@ public:
         this->lock.unlock();
         return result;
     }
-
     bool check_and_set(_key key, _val old_val, _val new_val)
     {
         bool result = false;
@@ -44,7 +43,6 @@ public:
         this->lock.unlock();
         return result;
     }
-    
     _val get(_key key)
     {
         this->lock.lock();

@@ -162,6 +162,9 @@ public:
     vector<PBFTCommitMessage *> commit_msgs;
     void add_commit_msg(PBFTCommitMessage *pcmsg);
 
+    vector<PBFTPrepMessage *> prep_msgs;
+    void add_prep_msg(PBFTPrepMessage *pcmsg);
+
     uint64_t decr_commit_rsp_cnt();
     uint64_t get_commit_rsp_cnt();
     bool is_committed();

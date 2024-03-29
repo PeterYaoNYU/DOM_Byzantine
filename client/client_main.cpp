@@ -39,6 +39,9 @@ int main(int argc, char *argv[])
     srand(seed);
     printf("Random seed: %ld\n", seed);
 
+    set_cpu_clock();
+    printf("CPU clock is:  %f\n", cpu_clock);
+    
     int64_t starttime;
     int64_t endtime;
     starttime = get_server_clock();
@@ -273,34 +276,34 @@ void network_test()
 {
     /*
 
-	ts_t start;
-	ts_t end;
-	double time;
-	int bytes;
-	for(int i=4; i < 257; i+=4) {
-		time = 0;
-		for(int j=0;j < 1000; j++) {
-			start = get_sys_clock();
-			tport_man.simple_send_msg(i);
-			while((bytes = tport_man.simple_recv_msg()) == 0) {}
-			end = get_sys_clock();
-			assert(bytes == i);
-			time += end-start;
-		}
-		time = time/1000;
-		printf("Network Bytes: %d, s: %f\n",i,time/BILLION);
+    ts_t start;
+    ts_t end;
+    double time;
+    int bytes;
+    for(int i=4; i < 257; i+=4) {
+        time = 0;
+        for(int j=0;j < 1000; j++) {
+            start = get_sys_clock();
+            tport_man.simple_send_msg(i);
+            while((bytes = tport_man.simple_recv_msg()) == 0) {}
+            end = get_sys_clock();
+            assert(bytes == i);
+            time += end-start;
+        }
+        time = time/1000;
+        printf("Network Bytes: %d, s: %f\n",i,time/BILLION);
         fflush(stdout);
-	}
+    }
   */
 }
 
 void network_test_recv()
 {
     /*
-	int bytes;
-	while(1) {
-		if( (bytes = tport_man.simple_recv_msg()) > 0)
-			tport_man.simple_send_msg(bytes);
-	}
+    int bytes;
+    while(1) {
+        if( (bytes = tport_man.simple_recv_msg()) > 0)
+            tport_man.simple_send_msg(bytes);
+    }
   */
 }

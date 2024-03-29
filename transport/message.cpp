@@ -656,7 +656,8 @@ string YCSBClientQueryMessage::getRequestString()
 	string message;
 	for (uint64_t i = 0; i < requests.size(); i++)
 	{
-		message += std::to_string(requests[i]->key);
+		// message += std::to_string(requests[i]->key);
+		message += requests[i]->key;
 		message += " ";
 		message += requests[i]->value;
 		message += " ";
@@ -830,9 +831,10 @@ uint64_t ClientResponseMessage::get_size()
 {
 	uint64_t size = Message::mget_size();
 	size += sizeof(uint64_t);
+	size += sizeof(hashSize);
+	size += hash.length();
 
 #if CLIENT_RESPONSE_BATCH == true
-	size += sizeof(uint64_t) * index.size();
 	size += sizeof(uint64_t) * client_ts.size();
 #else
 	size += sizeof(uint64_t);
@@ -843,14 +845,12 @@ uint64_t ClientResponseMessage::get_size()
 
 void ClientResponseMessage::init()
 {
-	this->index.init(get_batch_size());
 	this->client_ts.init(get_batch_size());
 }
 
 void ClientResponseMessage::release()
 {
 #if CLIENT_RESPONSE_BATCH == true
-	index.release();
 	client_ts.release();
 #endif
 }
@@ -862,7 +862,6 @@ void ClientResponseMessage::copy_from_txn(TxnManager *txn)
 	view = get_current_view(txn->get_thd_id());
 
 #if CLIENT_RESPONSE_BATCH
-	this->index.add(txn->get_txn_id());
 	this->client_ts.add(txn->client_startts);
 #else
 	client_startts = txn->client_startts;
@@ -883,15 +882,10 @@ void ClientResponseMessage::copy_from_buf(char *buf)
 	Message::mcopy_from_buf(buf);
 	uint64_t ptr = Message::mget_size();
 
+	COPY_VAL(hashSize, buf, ptr);
+	ptr = buf_to_string(buf, ptr, hash, hashSize);
 #if CLIENT_RESPONSE_BATCH == true
-	index.init(get_batch_size());
 	uint64_t tval;
-	for (uint64_t i = 0; i < get_batch_size(); i++)
-	{
-		COPY_VAL(tval, buf, ptr);
-		index.add(tval);
-	}
-
 	client_ts.init(get_batch_size());
 	for (uint64_t i = 0; i < get_batch_size(); i++)
 	{
@@ -912,14 +906,10 @@ void ClientResponseMessage::copy_to_buf(char *buf)
 	Message::mcopy_to_buf(buf);
 	uint64_t ptr = Message::mget_size();
 
+	COPY_BUF(buf, hashSize, ptr);
+	ptr = string_to_buf(buf, ptr, hash);
 #if CLIENT_RESPONSE_BATCH == true
 	uint64_t tval;
-	for (uint64_t i = 0; i < get_batch_size(); i++)
-	{
-		tval = index[i];
-		COPY_BUF(buf, tval, ptr);
-	}
-
 	for (uint64_t i = 0; i < get_batch_size(); i++)
 	{
 		tval = client_ts[i];
@@ -936,12 +926,7 @@ void ClientResponseMessage::copy_to_buf(char *buf)
 
 string ClientResponseMessage::getString(uint64_t sender)
 {
-	string message = std::to_string(sender);
-	for (uint64_t i = 0; i < get_batch_size(); i++)
-	{
-		message += std::to_string(index[i]) + ":" +
-				   std::to_string(client_ts[i]);
-	}
+	string message = std::to_string(sender) + this->hash;
 	return message;
 }
 
@@ -1151,6 +1136,14 @@ void KeyExchange::copy_to_buf(char *buf)
 }
 
 #if CLIENT_BATCH
+
+string ClientQueryBatch::getHash()
+{
+	string batchStr = "";
+	for (uint64_t i = 0; i < get_batch_size(); i++)
+		batchStr += this->cqrySet[i]->getString();
+	return calculateHash(batchStr);
+}
 
 uint64_t ClientQueryBatch::get_size()
 {

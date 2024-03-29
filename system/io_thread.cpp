@@ -209,52 +209,42 @@ RC InputThread::client_recv_loop()
                 fflush(stdout);
                 assert(0);
             }
-
 #if ZYZ
             uint64_t required_responses = g_node_cnt;
-#else       
+#else
             uint64_t required_responses = g_min_invalid_nodes + 1;
 #endif
-
             ClientResponseMessage *clrsp = (ClientResponseMessage *)msg;
             // Check if the response is valid.
             assert(clrsp->validate());
-
-
-
+            if (client_responses_count.get(clrsp->hash) == required_responses)
+            {
+                Message::release_message(msg);
+                msgs->erase(msgs->begin());
+                continue;
+            }
 
             uint64_t response_count = 0;
-
-            if (client_responses_directory.exists(msg->txn_id))
+            uint64_t trap_counter = 0;
+            bool success = false;
+            while (!success && response_count < required_responses)
             {
-                ClientResponseMessage *old_clrsp = client_responses_directory.get(msg->txn_id);
-                response_count = client_responses_count.get(msg->txn_id);
+                response_count = client_responses_count.get(clrsp->hash);
                 response_count++;
-                for (uint64_t j = 0; j < get_batch_size(); j++)
-                {
-                    if (old_clrsp->index[j] != clrsp->index[j])
-                        assert(false);
-                    assert(old_clrsp->client_ts[j] == clrsp->client_ts[j]);
-                }
-                client_responses_count.add(msg->txn_id, response_count);
+                success = client_responses_count.check_and_set(clrsp->hash, response_count - 1, response_count);
+                assert(++trap_counter < g_node_cnt);
             }
-            else if (!client_responses_count.exists(msg->txn_id))
-            {
-                client_responses_count.add(msg->txn_id, 1);
-                char *buf = create_msg_buffer(msg);
-                Message *deepMsg = deep_copy_msg(buf, msg);
-                delete_msg_buffer(buf);
-                client_responses_directory.add(msg->txn_id, (ClientResponseMessage *)deepMsg);
-            }
+
             // cout << msg->txn_id << "   " << response_count << endl;
-            if (response_count == g_min_invalid_nodes + 1)
+
+            if (response_count == required_responses && success)
             {
                 // If true, set this as the next transaction completed.
                 set_last_valid_txn(msg->txn_id);
 
 #if TIMER_ON
                 // End the timer.
-                client_timer->endTimer(clrsp->client_ts[get_batch_size() - 1]);
+                client_timer->endTimer(clrsp->hash);
 #endif
                 // cout << "validated: " << clrsp->txn_id << "   " << clrsp->return_node_id << "\n";
                 // fflush(stdout);
@@ -293,8 +283,7 @@ RC InputThread::client_recv_loop()
                     }
                     inf = client_man.dec_inflight(return_node_offset);
                 }
-                Message::release_message(client_responses_directory.get(msg->txn_id));
-                client_responses_directory.remove(msg->txn_id);
+                // client_responses_count.remove(clrsp->hash);
 #else // !CLIENT_RESPONSE_BATCH
 
                 INC_STATS(get_thd_id(), txn_cnt, 1);

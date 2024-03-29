@@ -2,10 +2,9 @@
 #define _CONFIG_H_
 // Specify the number of servers or replicas
 #define NODE_CNT 4
-// Number of worker threads at primary. 
-#define THREAD_CNT 5 // This Should be the sum of following thread count + protocol specifig threads
+// #define THREAD_CNT 5 // This Should be the sum of following thread count + protocol specifig threads
 #define WORKER_THREAD_CNT 1
-#define BATCH_THREAD_CNT 2
+// #define BATCH_THREAD_CNT 2
 #define CHECKPOINT_THREAD_CNT 1
 #define EXECUTE_THREAD_CNT 1
 // IO THREADS
@@ -16,16 +15,29 @@
 #define PART_CNT 1
 // Specify the number of clients.
 #define CLIENT_NODE_CNT 1
-// #define CLIENT_THREAD_CNT 2
-// #define CLIENT_REM_THREAD_CNT 1
 #define CLIENT_THREAD_CNT 1
 #define CLIENT_REM_THREAD_CNT 1 
 #define CLIENT_SEND_THREAD_CNT 1
 #define CLIENT_RUNTIME false
 
 #define MESSAGE_PER_BUFFER 24
+// Hardware Asisted BFT
+#define SGX        false
+#define A2M        (SGX && false)
+#define MIN_PBFT   (SGX && false)
+#define MIN_ZYZ    (SGX && false)
+#define CONTRAST   (A2M && false)
+#define FLEXI_PBFT (SGX && false)
+#define FLEXI_ZYZ  (SGX && false)
+#define ZYZ        false
 
-#define ZYZ false
+#define MIN_PBFT_ALL_TO_ALL false
+
+#define PERSISTENT_COUNTER            SGX &&  false
+#define PERS_COUNTER_RESPONSE_TIME    1 * 1000000
+
+#define THREAD_CNT ( (A2M || MIN_PBFT || MIN_ZYZ) && !CONTRAST ? 4 : 5)
+#define BATCH_THREAD_CNT ( (A2M || MIN_PBFT || MIN_ZYZ) && !CONTRAST ? 1 : 2)
 
 // GeoBFT Setting 
 #define GBFT false

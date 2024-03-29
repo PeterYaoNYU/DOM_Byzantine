@@ -1,6 +1,8 @@
 #include "global.h"
 #include "mem_alloc.h"
 #include "time.h"
+#include <regex>
+
 
 uint64_t get_part_id(void *addr)
 {
@@ -78,7 +80,7 @@ uint64_t get_server_clock()
 	__asm__ __volatile__("rdtsc"
 						 : "=a"(lo), "=d"(hi));
 	uint64_t ret = ((uint64_t)lo) | (((uint64_t)hi) << 32);
-	ret = (uint64_t)((double)ret / CPU_FREQ);
+	ret = (uint64_t)((double)ret / cpu_clock);
 #else
 	timespec *tp = new timespec;
 	clock_gettime(CLOCK_REALTIME, tp);
@@ -140,4 +142,25 @@ uint64_t get_execute_message_txn_id(uint64_t txn_id)
 	uint64_t result = txn_id / get_batch_size();
 	result = (result + 1) * get_batch_size();
 	return result - 2;
+}
+
+double cpu_clock = CPU_FREQ;
+void set_cpu_clock()
+{
+	ifstream input("/proc/cpuinfo");
+	string line = "";
+	while (getline(input, line))
+	{
+		if (line.find("cpu MHz") != string::npos)
+		{
+
+			regex matcher("[\\D]*(\\d+.\\d+)");
+			std::smatch captures;
+			if (std::regex_match(line, captures, matcher))
+			{
+				cpu_clock = (float)stoi(captures[1]) / 1000;
+				return;
+			}
+		}
+	}
 }

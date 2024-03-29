@@ -122,6 +122,10 @@ void MessageThread::run()
         if (msg->rtype == NEW_VIEW)
             sbuf->force = true;
 #endif
+#if LOCAL_FAULT
+        if (msg->rtype == CL_RSP)
+            sbuf->force = true;
+#endif
         if (msg->rtype == PBFT_CHKPT_MSG)
             sbuf->force = true;
         msg->copy_to_buf(&(sbuf->buffer[sbuf->ptr]));
