@@ -10,22 +10,17 @@
 #define EXECUTE_THREAD_CNT 1
 // IO THREADS
 #define REM_THREAD_CNT 2
-#define REM_THREAD_CNT_FOR_CLIENTS 1
 #define SEND_THREAD_CNT 1
 #define CORE_CNT 8
 #define PART_CNT 1
 // Specify the number of clients.
 #define CLIENT_NODE_CNT 1
-// #define CLIENT_THREAD_CNT 2
-// #define CLIENT_REM_THREAD_CNT 1
-#define CLIENT_THREAD_CNT 1
-#define CLIENT_REM_THREAD_CNT 1 
+#define CLIENT_THREAD_CNT 2
+#define CLIENT_REM_THREAD_CNT 1
 #define CLIENT_SEND_THREAD_CNT 1
 #define CLIENT_RUNTIME false
 
 #define MESSAGE_PER_BUFFER 24
-
-#define ZYZ false
 
 // GeoBFT Setting 
 #define GBFT false
@@ -44,13 +39,13 @@
 #define WORKLOAD YCSB
 #define PRT_LAT_DISTR false
 #define STATS_ENABLE true
-#define STATS_DETAILED true
+#define STATS_DETAILED false
 #define STAT_BAND_WIDTH_ENABLE false
 #define TIME_ENABLE true
 #define TIME_PROF_ENABLE false
 #define FIN_BY_TIME true
 // Number of transactions each client should send without waiting.
-#define MAX_TXN_IN_FLIGHT 7000
+#define MAX_TXN_IN_FLIGHT 20000
 #define SERVER_GENERATE_QUERIES false
 #define MEM_ALLIGN 8
 #define THREAD_ALLOC false
@@ -66,7 +61,7 @@
 #define MAX_TPORT_NAME 128
 #define MSG_SIZE 128
 #define HEADER_SIZE sizeof(uint32_t) * 2
-#define MSG_TIMEOUT 5 * BILLION // in ns
+#define MSG_TIMEOUT 5000000000UL // in ns
 #define NETWORK_TEST false
 #define NETWORK_DELAY_TEST false
 #define NETWORK_DELAY 0UL
@@ -138,8 +133,8 @@
 #define PARTITIONED 0
 #define REPLICATED 1
 // To select the amount of time to warmup and run.
-#define DONE_TIMER 60 * BILLION
-#define WARMUP_TIMER  15 * BILLION
+#define DONE_TIMER 1 * 60 * BILLION
+#define WARMUP_TIMER  5 * BILLION
 // Select the consensus algorithm to run.
 #define CONSENSUS PBFT
 #define PBFT 2
@@ -167,7 +162,7 @@
 #define VIEW_CHANGES false
 // The amount of timeout value.
 #define EXE_TIMEOUT 10000000000
-#define CEXE_TIMEOUT 5 * BILLION
+#define CEXE_TIMEOUT 12000000000
 // To turn the timer on.
 #define TIMER_ON false
 //Global variables to choose the encryptation algorithm
