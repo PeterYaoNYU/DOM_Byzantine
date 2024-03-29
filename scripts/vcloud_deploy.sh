@@ -14,12 +14,12 @@ for HOSTNAME in ${HOSTS}; do
 	    echo "${HOSTNAME}: runcl ${count}"
 	else
 	    SCRIPT="ulimit -n 4096;./rundb -nid${count} > ${RES_FILE}${count}.out 2>&1"
-	    echo "${HOSTNAME}: rundb ${count}"
 	fi
-	# if [ "$i" -eq 0 ];then
-		ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no -l ${USERNAME} ${HOSTNAME} "
 		cd resilientdb
 		${SCRIPT}" &
+=======
+		cd resilientdb && bash -c '${SCRIPT}'" &
+>>>>>>> eurosys/main
 	# fi
 	count=`expr $count + 1`
 done
