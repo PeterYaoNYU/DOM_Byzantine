@@ -209,9 +209,20 @@ RC InputThread::client_recv_loop()
                 fflush(stdout);
                 assert(0);
             }
+
+#if ZYZ
+            uint64_t required_responses = g_node_cnt;
+#else       
+            uint64_t required_responses = g_min_invalid_nodes + 1;
+#endif
+
             ClientResponseMessage *clrsp = (ClientResponseMessage *)msg;
             // Check if the response is valid.
             assert(clrsp->validate());
+
+
+
+
             uint64_t response_count = 0;
 
             if (client_responses_directory.exists(msg->txn_id))

@@ -144,6 +144,10 @@ RC ClientThread::run()
 		if (client_timer->checkTimer(cbatch))
 		{
 			cout << "TIMEOUT!!!!!!\n";
+			for (uint64_t i = 0; i < get_batch_size(); i++)
+			{
+				client_man.dec_inflight(get_client_view());
+			}
 		}
 #endif
 

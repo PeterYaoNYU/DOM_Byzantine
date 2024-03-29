@@ -214,6 +214,9 @@ public:
     void release();
     string getString(uint64_t sender);
 
+    uint64 hashSize;
+    string hash;
+
     RC rc;
 
 #if CLIENT_RESPONSE_BATCH == true

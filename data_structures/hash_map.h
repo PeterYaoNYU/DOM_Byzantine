@@ -30,6 +30,21 @@ public:
         this->lock.unlock();
         return result;
     }
+
+    bool check_and_set(_key key, _val old_val, _val new_val)
+    {
+        bool result = false;
+        this->lock.lock();
+        _val temp = this->map[key];
+        if (old_val == temp)
+        {
+            result = true;
+            this->map[key] = new_val;
+        }
+        this->lock.unlock();
+        return result;
+    }
+    
     _val get(_key key)
     {
         this->lock.lock();

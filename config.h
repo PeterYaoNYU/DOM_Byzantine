@@ -22,6 +22,8 @@
 
 #define MESSAGE_PER_BUFFER 24
 
+#define ZYZ false
+
 // GeoBFT Setting 
 #define GBFT false
 #define GBFT_CLUSTER_SIZE 4
