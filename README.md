@@ -4,6 +4,39 @@
 3. The relationship between workload and txn mananger
 4. the busy in the workqueue class is essentially useless. 
 5. One work queue, one new txn queue, multiple execution queue, one checkpoint queue. 
+6. The txn table is one, global and unique. It is shared by all the threads. 
+7. why set the overall txn id of a batch request 2 less than the actual last txn id in the message?
+```c++
+void BatchRequests::copy_from_txn(TxnManager *txn)
+{
+	// Setting txn_id 2 less than the actual value.
+	this->txn_id = txn->get_txn_id() - 2;
+	this->batch_size = get_batch_size();
+
+	// Storing the representative hash of the batch.
+	this->hash = txn->hash;
+	this->hashSize = txn->hashSize;
+	// Use these lines for testing plain hash function.
+	//string message = "anc_def";
+	//this->hash.add(calculateHash(message));
+}
+```
+8. How does the system make sure that only the execute thread calls this function
+```c++
+/**
+ * Execute transactions and send client response.
+ *
+ * This function is only accessed by the execute-thread, which executes the transactions
+ * in a batch, in order. Note that the execute-thread has several queues, and at any
+ * point of time, the execute-thread is aware of which is the next transaction to
+ * execute. Hence, it only loops on one specific queue.
+ *
+ * @param msg Execute message that notifies execution of a batch.
+ * @ret RC
+ */
+RC WorkerThread::process_execute_msg(Message *msg)
+```
+9. why the execute message function locks the txn manangers of the last 4 messages in the batch, but not the first 95 message txn managers?
 
 # ResilientDB: A High-throughput yielding Permissioned Blockchain Fabric.
 

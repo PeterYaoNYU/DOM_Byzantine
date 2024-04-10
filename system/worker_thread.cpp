@@ -69,6 +69,7 @@ void WorkerThread::unset_ready_txn(TxnManager *tman)
     while (true)
     {
         bool ready = tman->unset_ready();
+        // peter: if already unready for the txn mananger, wait until it is ready, and then set it to be unready
         if (!ready)
         {
             // if (spin_wait_starttime == 0)
@@ -606,6 +607,9 @@ RC WorkerThread::process_new_view_msg(Message *msg)
  * Thess tasks involve, dequeuing a message from its queue and then processing it
  * through call to the relevant function.
  */
+
+// peter: somehow the heartbeat is not implemented. Do we really need it?
+// peter: it is not clear to me what agcount mean?
 RC WorkerThread::run()
 {
     tsetup();
@@ -657,7 +661,10 @@ RC WorkerThread::run()
             txn_man = get_transaction_manager(msg->txn_id, 0);
 
             ready_starttime = get_sys_clock();
+            // peter: change the state of this txn from ready to not ready
             bool ready = txn_man->unset_ready();
+            // peter: a return value of 0 indicacte that the txn is not ready initially
+            // and the cas operation is not swapping the bits, hence cas returns 0
             if (!ready)
             {
                 // cout << "Placing: Txn: " << msg->txn_id << " Type: " << msg->rtype << "\n";
@@ -1148,6 +1155,7 @@ void WorkerThread::create_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
     // Creating a new BatchRequests Message.
     Message *bmsg = Message::create_message(BATCH_REQ);
     BatchRequests *breq = (BatchRequests *)bmsg;
+    // peter: fill in last stable ckecpt, current view, resize the array to fit in all request msgs
     breq->init(get_thd_id());
 
     // Starting index for this batch of transactions.
@@ -1163,6 +1171,8 @@ void WorkerThread::create_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
 
         // cout << "Txn: " << txn_id << " :: Thd: " << get_thd_id() << "\n";
         // fflush(stdout);
+        // peter: fetch the txn manager for the txn_id, and if not existing, 
+        // create a new one (the node and the manager), and put it to the list
         txn_man = get_transaction_manager(txn_id, 0);
 
         // Unset this txn man so that no other thread can concurrently use.
@@ -1174,12 +1184,17 @@ void WorkerThread::create_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
         // Fields that need to updated according to the specific algorithm.
         algorithm_specific_update(msg, i);
 
+        // peter: the init_txn_man function initializes the necessary fields of the transaction manager for a given client transaction. 
+        // It sets the client ID and start timestamp, 
+        // and it creates and populates ycsb_request objects based on the requests in the client query, 
+        // adding them to the requests vector of the transaction manager's query object.
         init_txn_man(msg->cqrySet[i]);
 
         // Append string representation of this txn.
         batchStr += msg->cqrySet[i]->getString();
 
         // Setting up data for BatchRequests Message.
+        // peter: the txn manager provides the txnid, while the message is copied from the cqryset
         breq->copy_from_txn(txn_man, msg->cqrySet[i]);
 
         // Reset this txn manager.
@@ -1194,9 +1209,12 @@ void WorkerThread::create_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
     txn_man->set_hash(calculateHash(batchStr));
     txn_man->hashSize = txn_man->hash.length();
 
+    // peter: set the overall txnid for this message, the hash, the batch size, and the hash size
     breq->copy_from_txn(txn_man);
 
     // Storing the BatchRequests message.
+    // peter: This function is used to set the batchreq member of the TxnManager object 
+    // to a deep copy of the BatchRequests object passed as an argument.
     txn_man->set_primarybatch(breq);
 
     vector<uint64_t> dest;

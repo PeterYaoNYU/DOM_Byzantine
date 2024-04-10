@@ -26,6 +26,7 @@
  * @param msg Batch of Transactions of type CientQueryBatch from the client.
  * @return RC
  */
+// peter: this needs to be modified in the DOM impl, upon reception, just execute, and send the response back to the client 
 RC WorkerThread::process_client_batch(Message *msg)
 {
     ClientQueryBatch *clbtch = (ClientQueryBatch *)msg;
@@ -112,6 +113,7 @@ RC WorkerThread::process_batch(Message *msg)
     txn_man->set_committed();
     send_execute_msg();
 #else                               // Enters here in PBFT
+    // peter: pbft prep message is never sent in ZYZ
     // Send Prepare messages.
     txn_man->send_pbft_prep_msgs(); // x99
 #endif
@@ -120,6 +122,7 @@ RC WorkerThread::process_batch(Message *msg)
     INC_STATS(get_thd_id(), time_pre_prepare, timepre);
 
     // Only when BatchRequests message comes after some Prepare message.
+    // peter: ZYZ never sends out prep msg, so the info prepare size is always 0
     for (uint64_t i = 0; i < txn_man->info_prepare.size(); i++)
     {
         // Decrement.

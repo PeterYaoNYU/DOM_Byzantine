@@ -68,6 +68,8 @@ bool Thread::has_view_changed()
     return false;
 }
 
+
+// peter: gprogtimer is just a predefined interval, after which we should print out the stats
 void Thread::progress_stats()
 {
 #if TIME_ENABLE
