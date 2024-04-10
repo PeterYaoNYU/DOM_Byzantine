@@ -5,6 +5,7 @@
 #include "message.h"
 #include <boost/lockfree/queue.hpp>
 
+// peter: # send threads = # msg queues
 void MessageQueue::init()
 {
     //m_queue = new boost::lockfree::queue<msg_entry* > (0);
@@ -56,6 +57,10 @@ void MessageQueue::enqueue(uint64_t thd_id, Message *msg, const vector<uint64_t>
         entry->allsign.push_back(((ClientResponseMessage *)msg)->signature);
         break;
 
+    // peter: CL_Batch is detined for only one destination
+    // while batch request is destined for multiple destinations
+    // this is an important distinction, which means that this needs to be changed when 
+    // incorporating deadline oriented multicast
     case CL_BATCH:
         ((ClientQueryBatch *)msg)->sign(dest[0]);
         entry->allsign.push_back(msg->signature);
@@ -213,6 +218,8 @@ void MessageQueue::enqueue(uint64_t thd_id, Message *msg, const vector<uint64_t>
     }
 }
 
+// peter: return the detination list, update the allsign and msg ref/pointer passed into the fn
+// free the memory of the msg_entry in the receive message queue 
 vector<uint64_t> MessageQueue::dequeue(uint64_t thd_id, vector<string> &allsign, Message *&msg)
 {
     msg_entry *entry = NULL;

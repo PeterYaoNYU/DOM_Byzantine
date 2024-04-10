@@ -205,6 +205,7 @@ void QryPool::free_all()
     }
 }
 
+// peter: the name txntablepool is misleading. It is actually a pool for txn_node.
 void TxnTablePool::init(Workload *wl, uint64_t size)
 {
     _wl = wl;

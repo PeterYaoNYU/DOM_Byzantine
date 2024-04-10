@@ -1,3 +1,10 @@
+## Notes and Questions Peter(DOM_BFT implementation):
+1. the client is not doing enough? Where does it decide that 3f + 1 have been received, or whether 2f+1 is received, and a further round of notification (local commit) is needed? So far I did not see it.
+2. The worker thread is not doing enough? Right now, send out execute messages, and set committed (set local commit at the txn mananger responsible for this specific txn). It does not send out prepare messages anymore. Why txn_manager can be concurrent. Why multiple threads can access the same txn mananger?
+3. The relationship between workload and txn mananger
+4. the busy in the workqueue class is essentially useless. 
+5. One work queue, one new txn queue, multiple execution queue, one checkpoint queue. 
+
 # ResilientDB: A High-throughput yielding Permissioned Blockchain Fabric.
 
 ### ResilientDB aims at *Making Permissioned Blockchain Systems Fast Again*. ResilientDB makes *system-centric* design decisions by adopting a *multi-thread architecture* that encompasses *deep-pipelines*. Further, we *separate* the ordering of client transactions from their execution, which allows us to perform *out-of-order processing of messages*.

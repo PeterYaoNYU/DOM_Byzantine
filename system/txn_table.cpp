@@ -9,6 +9,7 @@
 #include "work_queue.h"
 #include "message.h"
 
+// peter: a txn table has pool nodes. 
 void TxnTable::init()
 {
     DEBUG_M("TxnTable::init pool_node alloc\n");
