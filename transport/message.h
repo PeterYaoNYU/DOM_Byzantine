@@ -198,6 +198,7 @@ public:
     string getString();
     string getRequestString();
 
+    // for DOM
     uint64_t client_txn_id;
 
     Array<ycsb_request *> requests;

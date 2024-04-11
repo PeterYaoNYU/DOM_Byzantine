@@ -356,6 +356,7 @@ RC InputThread::server_recv_loop()
             if (msg->rtype == CL_BATCH)
             {
                 // Linearizing requests.
+                // DOM: this needs to be chaneged
                 msg->txn_id = get_and_inc_next_idx();
                 INC_STATS(_thd_id, msg_cl_in, 1);
             }
