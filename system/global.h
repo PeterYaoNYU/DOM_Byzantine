@@ -73,6 +73,13 @@ typedef int64_t SInt64;
 typedef uint64_t ts_t; // time stamp type
 
 /******************************************/
+// DOM Related
+/******************************************/
+extern uint64_t client_next_txn_id;
+extern std::mutex client_next_txn_id_mtx;
+
+
+/******************************************/
 // Global Data Structure
 /******************************************/
 extern mem_alloc mem_allocator;
