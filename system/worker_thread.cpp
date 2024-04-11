@@ -1170,7 +1170,9 @@ void WorkerThread::create_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
         uint64_t txn_id = get_next_txn_id() + i;
 
         // cout << "Txn: " << txn_id << " :: Thd: " << get_thd_id() << "\n";
+        // cout << "Client defined Txn: " << msg->cqrySet[i]->client_txn_id << " :: Thd: " << get_thd_id() << "\n";
         // fflush(stdout);
+        DEBUG("Client defined Txn: %ld\n", msg->cqrySet[i]->client_txn_id);
         // peter: fetch the txn manager for the txn_id, and if not existing, 
         // create a new one (the node and the manager), and put it to the list
         txn_man = get_transaction_manager(txn_id, 0);

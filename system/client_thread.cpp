@@ -12,6 +12,16 @@
 #include "message.h"
 #include "timer.h"
 
+uint64_t ClientThread::get_next_txn_id()
+{
+	uint64_t txn_id;
+	client_next_txn_id_mtx.lock();
+	txn_id = client_next_txn_id;
+	client_next_txn_id++;
+	client_next_txn_id_mtx.unlock();
+	return txn_id;
+}
+
 void ClientThread::send_key()
 {
 	// Send everyone the public key.
@@ -215,6 +225,9 @@ RC ClientThread::run()
 
 		YCSBClientQueryMessage *clqry = (YCSBClientQueryMessage *)msg;
 		clqry->return_node = g_node_id;
+		uint64_t c_txn_id = get_next_txn_id();
+		clqry->client_txn_id = c_txn_id;
+		DEBUG("Client txn id: %lu\n", c_txn_id);
 
 #endif
 

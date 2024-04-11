@@ -112,7 +112,7 @@
 #define STRICT_PPT 1
 #define MPR 1.0
 #define MPIR 0.01
-#define DEBUG_DISTR false
+#define DEBUG_DISTR true
 #define DEBUG_ALLOC false
 #define DEBUG_RACE false
 #define DEBUG_LATENCY false

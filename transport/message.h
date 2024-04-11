@@ -198,6 +198,8 @@ public:
     string getString();
     string getRequestString();
 
+    uint64_t client_txn_id;
+
     Array<ycsb_request *> requests;
 };
 #endif
