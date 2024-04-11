@@ -9,8 +9,8 @@ class BaseQuery;
 class Message;
 
 
-// peter: I do not understand what is allsign?\
-// upon further invetsigation, it seems that allsign is a vector of signatures.\
+// peter: I do not understand what is allsign?
+// upon further invetsigation, it seems that allsign is a vector of signatures.
 class msg_entry
 {
 public:
