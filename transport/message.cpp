@@ -956,6 +956,7 @@ bool ClientResponseMessage::validate()
 	string message = getString(this->return_node_id);
 	if (!validateNodeNode(message, this->pubKey, this->signature, this->return_node_id))
 	{
+		DEBUG ("ClientResponseMessage::validate signature failed\n");
 		assert(0);
 		return false;
 	}
@@ -1503,6 +1504,7 @@ bool BatchRequests::validate(uint64_t thd_id)
 
 	if (!validateNodeNode(message, this->pubKey, this->signature, this->return_node_id))
 	{
+		DEBUG("Batch Requests: Validation of the message failed\n")
 		assert(0);
 		return false;
 	}
@@ -1718,6 +1720,7 @@ bool CheckpointMessage::validate()
 	//verify signature of message
 	if (!validateNodeNode(message, this->pubKey, this->signature, this->return_node_id))
 	{
+		DEBUG ("CheckpointMessage: Validation of the message failed\n")
 		assert(0);
 		return false;
 	}
@@ -1880,6 +1883,7 @@ bool PBFTPrepMessage::validate()
 	string message = this->toString();
 	if (!validateNodeNode(message, this->pubKey, this->signature, this->return_node_id))
 	{
+		DEBUG ("PBFTPrepMessage: Validation of the message failed\n")
 		assert(0);
 		return false;
 	}
@@ -2011,6 +2015,7 @@ bool PBFTCommitMessage::validate()
 #else
 	if (!validateNodeNode(message, this->pubKey, this->signature, this->return_node_id))
 	{
+		DEBUG ("PBFTCommitMessage: Validation of the message failed\n")
 		assert(0);
 		return false;
 	}

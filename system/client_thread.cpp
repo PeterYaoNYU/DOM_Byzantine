@@ -262,20 +262,22 @@ RC ClientThread::run()
 
 			// peter: if DOM, we need the client to send it to every node.
 			// O/W just send it to the primary
-			vector<uint64_t> dest;
 #if DOM
 			for (uint64_t i = 0; i < g_node_cnt; i++)
 			{
+				vector<uint64_t> dest;
+				if (i == g_node_id)
+				{
+					continue;
+				}
 				dest.push_back(i);
+				msg_queue.enqueue(get_thd_id(), bmsg, dest);
+				dest.clear();
 			}
 #else
-			dest.push_back(next_node_id);
+			msg_queue.enqueue(get_thd_id(), bmsg, {next_node_id});
+
 #endif
-
-			// msg_queue.enqueue(get_thd_id(), bmsg, {next_node_id});
-			msg_queue.enqueue(get_thd_id(), bmsg, dest);
-
-
 			num_txns_sent += g_batch_size;
 			txns_sent[next_node] += g_batch_size;
 			INC_STATS(get_thd_id(), txn_sent_cnt, g_batch_size);
