@@ -240,7 +240,7 @@ RC ClientThread::run()
 			// peter: okay here since we are using ed25519, the next_node_id does not really matter. 
 			// when changing to cmac, we have to be careful to change it to the destintaion id
 			// o/w the validation process will fail.
-			bmsg->sign(next_node_id); // Sign the message.
+			// bmsg->sign(next_node_id); // Sign the message.
 			string batchStr = "";
 			for (uint64_t i = 0; i < get_batch_size(); i++)
 			{
@@ -262,20 +262,25 @@ RC ClientThread::run()
 
 			// peter: if DOM, we need the client to send it to every node.
 			// O/W just send it to the primary
-			vector<uint64_t> dest;
 #if DOM
+			DEBUG ("Sending to all nodes, but the primary is %u\n", next_node_id);
 			for (uint64_t i = 0; i < g_node_cnt; i++)
 			{
+				char *buf = create_msg_buffer(bmsg);
+				Message *deepCMsg = deep_copy_msg(buf, bmsg);
+				ClientQueryBatch *deepCqry = (ClientQueryBatch *)deepCMsg;
+				// deepCqry->txn_id = 
+				deepCqry->sign(i);
+				delete_msg_buffer(buf);
+
+				vector<uint64_t> dest;
 				dest.push_back(i);
+				msg_queue.enqueue(get_thd_id(), deepCMsg, dest);
+				dest.clear();
 			}
 #else
-			dest.push_back(next_node_id);
+			msg_queue.enqueue(get_thd_id(), bmsg, {next_node_id});
 #endif
-
-			// msg_queue.enqueue(get_thd_id(), bmsg, {next_node_id});
-			msg_queue.enqueue(get_thd_id(), bmsg, dest);
-
-
 			num_txns_sent += g_batch_size;
 			txns_sent[next_node] += g_batch_size;
 			INC_STATS(get_thd_id(), txn_sent_cnt, g_batch_size);
