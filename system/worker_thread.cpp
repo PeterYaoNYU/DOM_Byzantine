@@ -1279,6 +1279,7 @@ bool WorkerThread::validate_msg(Message *msg)
     case CL_BATCH:
         if (!((ClientQueryBatch *)msg)->validate())
         {
+            DEBUG ("CL_BATCH validation failed\n");
             assert(0);
         }
         break;

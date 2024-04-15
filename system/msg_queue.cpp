@@ -62,8 +62,11 @@ void MessageQueue::enqueue(uint64_t thd_id, Message *msg, const vector<uint64_t>
     // this is an important distinction, which means that this needs to be changed when 
     // incorporating deadline oriented multicast
     case CL_BATCH:
-        ((ClientQueryBatch *)msg)->sign(dest[0]);
-        entry->allsign.push_back(msg->signature);
+        for (uint64_t i = 0; i < dest.size(); i++)
+        {
+            ((ClientQueryBatch *)msg)->sign(dest[i]);
+            entry->allsign.push_back(msg->signature);
+        }
         break;
     case BATCH_REQ:
         for (uint64_t i = 0; i < dest.size(); i++)

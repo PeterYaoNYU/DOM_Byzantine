@@ -245,6 +245,7 @@ bool TxnManager::waiting_for_response()
 
 void TxnManager::commit_stats()
 {
+    DEBUG ("%ld commit_stats\n", get_txn_id());
     uint64_t commit_time = get_sys_clock();
     uint64_t timespan_short = commit_time - txn_stats.restart_starttime;
     uint64_t timespan_long = commit_time - txn_stats.starttime;
