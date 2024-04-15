@@ -1324,8 +1324,8 @@ void BatchRequests::init(uint64_t thd_id)
 // Only primary should create this message
 #if GBFT
 	assert(is_primary_node(g_node_id));
-#else
-	assert(get_current_view(thd_id) == g_node_id);
+// #else
+// 	assert(get_current_view(thd_id) == g_node_id);
 #endif
 	this->view = get_current_view(thd_id);
 
