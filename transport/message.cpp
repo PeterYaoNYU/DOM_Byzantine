@@ -1242,6 +1242,10 @@ string ClientQueryBatch::getString()
 	return message;
 }
 
+// peter: note that we are now using the default ed25519 as crypto method
+// so dest node does not really matter. We only need our own pub key to sign this message
+// (I think it is public key, I am not so sure)
+// If you are using cmac aes, then it does really matter. 
 void ClientQueryBatch::sign(uint64_t dest_node)
 {
 #if USE_CRYPTO
@@ -1280,6 +1284,7 @@ bool ClientQueryBatch::validate()
 	// make sure signature is valid
 	if (!validateClientNode(message, this->pubKey, this->signature, this->return_node))
 	{
+		DEBUG ("Client Query Batch: Validation of the message failed\n")
 		assert(0);
 		return false;
 	}

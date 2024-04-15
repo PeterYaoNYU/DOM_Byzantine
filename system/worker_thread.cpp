@@ -1173,6 +1173,12 @@ void WorkerThread::create_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
         // cout << "Client defined Txn: " << msg->cqrySet[i]->client_txn_id << " :: Thd: " << get_thd_id() << "\n";
         // fflush(stdout);
         DEBUG("Client defined Txn: %ld\n", msg->cqrySet[i]->client_txn_id);
+# if DOM
+        // peter: set the txn_id to be the user_defined txn_id
+        // to be replaced by a DOM module later
+        txn_id = msg->cqrySet[i]->client_txn_id;
+        DEBUG("Assign TXN ID: %ld\n", txn_id);
+# endif
         // peter: fetch the txn manager for the txn_id, and if not existing, 
         // create a new one (the node and the manager), and put it to the list
         txn_man = get_transaction_manager(txn_id, 0);
@@ -1218,6 +1224,15 @@ void WorkerThread::create_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
     // peter: This function is used to set the batchreq member of the TxnManager object 
     // to a deep copy of the BatchRequests object passed as an argument.
     txn_man->set_primarybatch(breq);
+
+    // peter: if DOM, just execute directly. No need to send to other nodes
+#if DOM
+    // Execute the transactions.
+    txn_man->set_committed();
+    send_execute_msg();
+    DEBUG("Execute txn from %ld to %ld Directly\n", txn_man->get_txn_id() + 1 - get_batch_size(), txn_man->get_txn_id());
+    return;
+#endif
 
     vector<uint64_t> dest;
 

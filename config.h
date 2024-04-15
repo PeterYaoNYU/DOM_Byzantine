@@ -25,7 +25,8 @@
 
 #define MESSAGE_PER_BUFFER 24
 
-#define ZYZ true
+#define ZYZ false
+#define DOM true
 
 // GeoBFT Setting 
 #define GBFT false
