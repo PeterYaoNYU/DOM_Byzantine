@@ -76,11 +76,19 @@ uint64_t get_server_clock()
 	__asm__ __volatile__("rdtsc"
 						 : "=A"(ret));
 #elif defined(__x86_64__)
-	unsigned hi, lo;
-	__asm__ __volatile__("rdtsc"
-						 : "=a"(lo), "=d"(hi));
-	uint64_t ret = ((uint64_t)lo) | (((uint64_t)hi) << 32);
-	ret = (uint64_t)((double)ret / cpu_clock);
+// peter: I want the x86 64 architecture to also use the wall clock time
+// to be chaged later to be comptaible with clock sync
+	timespec *tp = new timespec;
+	clock_gettime(CLOCK_REALTIME, tp);
+	uint64_t ret = tp->tv_sec * 1000000000 + tp->tv_nsec;
+	delete tp;
+// peter: below is the original impl, which is time since boot. 
+// not uniform across nodes even with clock sync. 
+	// unsigned hi, lo;
+	// __asm__ __volatile__("rdtsc"
+	// 					 : "=a"(lo), "=d"(hi));
+	// uint64_t ret = ((uint64_t)lo) | (((uint64_t)hi) << 32);
+	// ret = (uint64_t)((double)ret / cpu_clock);
 #else
 	timespec *tp = new timespec;
 	clock_gettime(CLOCK_REALTIME, tp);

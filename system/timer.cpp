@@ -249,9 +249,13 @@ bool ClientTimer::checkTimer(ClientQueryBatch *&cbatch)
 	bool flag = false;
 
 	tlock.lock();
-	for (uint64_t i = 0; i < txn_map.size(); i++)
+	// peter: unordered map from hash to timer does not support indexing with a number.
+	// need to change it to compiler successfully.
+	auto it = txn_map.begin();
+	while (it != txn_map.end())
 	{
-		tmap = txn_map[i];
+		// tmap = txn_map[i];
+		tmap  = it->second;
 		if (get_sys_clock() - tmap->get_timestamp() < CEXE_TIMEOUT)
 		{
 			break;
@@ -264,7 +268,8 @@ bool ClientTimer::checkTimer(ClientQueryBatch *&cbatch)
 			delete_msg_buffer(buf);
 
 			// Delete this entry from the timer.
-			txn_map.erase(txn_map.begin() + i);
+			// txn_map.erase(txn_map.begin() + i);
+			it = txn_map.erase(it);
 			Message::release_message(tmap->get_msg());
 			mem_allocator.free(tmap, sizeof(Timer));
 
@@ -281,8 +286,18 @@ bool ClientTimer::checkTimer(ClientQueryBatch *&cbatch)
 /* Fetches the first entry */
 Timer *ClientTimer::fetchPendingRequests()
 {
-	Timer *tmap = txn_map[0];
+	Timer *tmap = nullptr;
+	tlock.lock();
+	if (!txn_map.empty())
+	{
+		auto it = txn_map.begin();
+		tmap = it->second;
+	}
+	tlock.unlock();
 	return tmap;
+	// peter: below is the original impl
+	// Timer *tmap = txn_map[0];
+	// return tmap;
 }
 
 /************************************/

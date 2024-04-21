@@ -200,6 +200,7 @@ public:
 
     // for DOM
     uint64_t client_txn_id;
+    uint64_t client_dom_time;
 
     Array<ycsb_request *> requests;
 };

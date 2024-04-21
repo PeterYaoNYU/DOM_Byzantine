@@ -586,6 +586,8 @@ uint64_t YCSBClientQueryMessage::get_size()
 	// for DOM
 	// client defined txn id
 	size += sizeof(uint64_t);
+	// peter: client defined execution time 
+	size += sizeof(uint64_t);
 
 	return size;
 }
@@ -631,6 +633,7 @@ void YCSBClientQueryMessage::copy_from_buf(char *buf)
 
 	COPY_VAL(return_node, buf, ptr);
 	COPY_VAL(client_txn_id, buf, ptr);
+	COPY_VAL(client_dom_time, buf, ptr);
 
 	assert(ptr == get_size());
 }
@@ -651,6 +654,7 @@ void YCSBClientQueryMessage::copy_to_buf(char *buf)
 
 	COPY_BUF(buf, return_node, ptr);
 	COPY_BUF(buf, client_txn_id, ptr);
+	COPY_BUF(buf, client_dom_time, ptr);
 
 	assert(ptr == get_size());
 }

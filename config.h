@@ -170,7 +170,7 @@
 #define EXE_TIMEOUT 10000000000
 #define CEXE_TIMEOUT 5 * BILLION
 // To turn the timer on.
-#define TIMER_ON false
+#define TIMER_ON true
 //Global variables to choose the encryptation algorithm
 #define USE_CRYPTO true
 #define CRYPTO_METHOD_RSA false     //Options RSA,

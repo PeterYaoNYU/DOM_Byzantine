@@ -1177,7 +1177,9 @@ void WorkerThread::create_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
         // peter: set the txn_id to be the user_defined txn_id
         // to be replaced by a DOM module later
         txn_id = msg->cqrySet[i]->client_txn_id;
-        DEBUG("Assign TXN ID: %ld\n", txn_id);
+        // peter: read the dom_time off the message
+        uint64_t dom_time = msg->cqrySet[i]->client_dom_time;
+        DEBUG("Assign TXN ID: %ld, CLIENT_DOM_TIME: %ld, current_time: %ld\n", txn_id, dom_time, get_sys_clock());
 # endif
         // peter: fetch the txn manager for the txn_id, and if not existing, 
         // create a new one (the node and the manager), and put it to the list

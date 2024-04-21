@@ -22,6 +22,12 @@ uint64_t ClientThread::get_next_txn_id()
 	return txn_id;
 }
 
+uint64_t ClientThread::get_estimated_exec_time_interval()
+{
+	// peter: currently just add 10 seconds to the current time.
+	return 10 * 1000000000ULL;
+}
+
 void ClientThread::send_key()
 {
 	// Send everyone the public key.
@@ -229,6 +235,11 @@ RC ClientThread::run()
 		clqry->client_txn_id = c_txn_id;
 		DEBUG("Client txn id: %lu\n", c_txn_id);
 
+		// maybe not ideal to init at this loc
+		// init at send time is ideal
+		// peter: also init the dom time field in the message
+		// clqry->client_dom_time = get_sys_clock() + get_estimated_exec_time_interval();
+
 #endif
 
 		bmsg->cqrySet.add(clqry);
@@ -244,6 +255,8 @@ RC ClientThread::run()
 			string batchStr = "";
 			for (uint64_t i = 0; i < get_batch_size(); i++)
 			{
+				// peter: init the dom time field in the message
+				bmsg->cqrySet[i]->client_dom_time = get_sys_clock() + get_estimated_exec_time_interval();
 				batchStr += bmsg->cqrySet[i]->getString();
 			}
 			string hash = calculateHash(batchStr);
