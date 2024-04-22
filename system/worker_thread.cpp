@@ -1180,6 +1180,10 @@ void WorkerThread::create_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
         // peter: read the dom_time off the message
         uint64_t dom_time = msg->cqrySet[i]->client_dom_time;
         DEBUG("Assign TXN ID: %ld, CLIENT_DOM_TIME: %ld, current_time: %ld\n", txn_id, dom_time, get_sys_clock());
+
+        // peter: set the timer for this txn, 
+        // note we do not set it here, because we only set the timer for the last one. 
+        
 # endif
         // peter: fetch the txn manager for the txn_id, and if not existing, 
         // create a new one (the node and the manager), and put it to the list

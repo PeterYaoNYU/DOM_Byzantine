@@ -34,6 +34,26 @@ public:
 	void removeAllTimers();
 };
 
+// peter: timer for DOM servers 
+class DOMTimer 
+{
+	// I want to order the timer and the corresponding txn in increasing order of deadline
+	std::map<uint64_t, std::tuple<Timer *, TxnManager *>> txn_map_sorted;
+	bool timer_state;
+public:
+// Here I boldly assume that the deadline is not the same acorss different client batches 
+// This is generally true but debatable with multiple clients
+
+	void startTimer(uint64_t deadline, TxnManager *txn);
+	void endTimer(uint64_t deadline);
+	bool checkTimer();
+	void pauseTimer();
+	void resumeTimer();
+	Timer *fetchPendingRequests(uint64_t idx);
+	uint64_t timerSize();
+	void removeAllTimers();
+};
+
 // Timer for clients.
 class ClientTimer
 {
