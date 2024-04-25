@@ -199,6 +199,7 @@ RC ClientThread::run()
 
 #else // If client batching enable
 
+		// peter: number of inflight txn >= max, do not send anymore, wait 
 		if ((inf_cnt = client_man.inc_inflight(next_node)) < 0)
 		{
 			continue;

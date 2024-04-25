@@ -209,7 +209,7 @@ RC InputThread::client_recv_loop()
                 fflush(stdout);
                 assert(0);
             }
-#if ZYZ
+#if ZYZ || DOM
             uint64_t required_responses = g_node_cnt;
 #else
             uint64_t required_responses = g_min_invalid_nodes + 1;
@@ -221,6 +221,7 @@ RC InputThread::client_recv_loop()
             {
                 Message::release_message(msg);
                 msgs->erase(msgs->begin());
+                DEBUG("Fast path taken: %ld\n", clrsp->txn_id);
                 continue;
             }
 
@@ -239,6 +240,7 @@ RC InputThread::client_recv_loop()
 
             if (response_count == required_responses && success)
             {
+                DEBUG("Fast path finally taken: %ld\n", clrsp->txn_id);
                 // If true, set this as the next transaction completed.
                 set_last_valid_txn(msg->txn_id);
 
