@@ -43,7 +43,8 @@ class DOMTimer
 public:
 // Here I boldly assume that the deadline is not the same acorss different client batches 
 // This is generally true but debatable with multiple clients
-
+// if the map insert fails, break the tie by increment the deadline with 1, which is negligable. 
+// having request collision is a very dangerous sign of system overload, and may lead to rollback with high probability
 	void startTimer(uint64_t deadline, TxnManager *txn);
 	void endTimer(uint64_t deadline);
 	bool checkTimer();

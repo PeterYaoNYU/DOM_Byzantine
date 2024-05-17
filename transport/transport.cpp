@@ -175,12 +175,14 @@ void Transport::init()
     string path = get_path();
     read_ifconfig(path.c_str());
 
+    // peteer: looping over each node in the system
     for (uint64_t node_id = 0; node_id < g_total_node_cnt; node_id++)
     {
         if (node_id == g_node_id)
             continue;
 
         // Listening ports
+        // peter: if the node is a client node
         if (ISCLIENTN(node_id))
         {
             // for (uint64_t client_thread_id = g_client_thread_cnt + g_client_rem_thread_cnt; client_thread_id < g_client_thread_cnt + g_client_rem_thread_cnt + g_client_send_thread_cnt; client_thread_id++)
@@ -190,10 +192,15 @@ void Transport::init()
                 Socket *sock = bind(port_id);
                 if (ISCLIENT)
                 {
+                    // peter: if myself is also a client, for every of its sending thread
+                    // I create a listening sockets for it. 
                     recv_sockets.push_back(sock);
                 }
                 else
                 {
+                    // peter: If I am a replica, the same, but each sock is put into a sublist according to the total receiving threads count
+                    // this is mainly because that each replica may have multiple recv threads. 
+                    // while each client is supposed to have only one recv thread  
                     recv_sockets_clients[node_id % client_input_threads].push_back(sock);
                 }
                 DEBUG("Socket insert: {%ld}: %ld\n", node_id, (uint64_t)sock);
@@ -201,6 +208,7 @@ void Transport::init()
             }
         }
         else
+        // peter: if the other size is a replica
         {
             // for on SEND_THREAD_CNT
             for (uint64_t server_thread_id = 0; server_thread_id < g_send_thread_cnt; server_thread_id++)

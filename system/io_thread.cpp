@@ -316,6 +316,60 @@ RC InputThread::client_recv_loop()
     return FINISH;
 }
 
+// peter: this is the receiving thread of the 
+RC InputThread::send_proxy_recv_loop()
+{
+    myrand rdm;
+    rdm.init(get_thd_id());
+    RC rc = RCOK;
+    assert(rc == RCOK);
+    uint64_t starttime = 0;
+    uint64_t idle_starttime  = 0;
+    std::vector<Message *> *msgs;
+    while (!simulation->is_done())
+    {
+        heartbeat();
+
+        msgs = tport_man.recv_msg(get_thd_id());
+
+        if (msgs == NULL) {
+            if (idle_starttime == 0) {
+                idle_starttime = get_sys_clock();
+            }
+            continue;
+        }
+        if (idle_starttime > 0 && simulation->is_warmup_done()）{
+            starttime += get_sys_clock() - idle_starttime;
+            idle_starttime = 0;
+        }
+
+        while (!msgs->empty())
+        {
+            Message * msg = msgs->front();
+            if (msg->rtype == INIT_DONE)
+            {
+                msgs->erase(msgs->begin());
+                continue;
+            }
+            // the sending proxy receives the batch from the client
+            // let me name the tpye as CL_BATCH
+            // we will later change the name for the message type the replica recevies from the clients
+            if (msg->rtype == CL_BATCH) 
+            {
+                // this txn_id is only tentative, to be changed later
+                // txn_id should really be assigned by the receiving proxy 
+                // according to the deadline
+                msg->txn_id = get_and_inc_next_idx();
+                INC_STATS(_thd_id, msg_cl_in, 1);
+            }
+
+            // enque the message to the work queue of the sending proxy
+            work_queue.enqueue(get_thd_id(), msg, false);
+            msgs->erase(msgs->begin());
+        }
+    }
+}
+
 RC InputThread::server_recv_loop()
 {
 
