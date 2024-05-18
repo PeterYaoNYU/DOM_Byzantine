@@ -1,3 +1,11 @@
+## Progress
+- [x] The recv loop of the sending proxy
+- [ ] Now that we have created more than just client and replica, we need to redesign the way the sockets are initialized at the transport layer. Who should have how many sockets for what
+- [ ] The send loop (output threads of the sending proxy) of the sending proxy
+- [ ] The message processing of the sending proxy (for now just set an arbitrary deadline that is long enough, details later for delay prediction)
+- [ ] new message type defined for the sending proxy
+
+
 ## Notes and Questions Peter(DOM_BFT implementation):
 1. the client is not doing enough? Where does it decide that 3f + 1 have been received, or whether 2f+1 is received, and a further round of notification (local commit) is needed? So far I did not see it.
 2. The worker thread is not doing enough? Right now, send out execute messages, and set committed (set local commit at the txn mananger responsible for this specific txn). It does not send out prepare messages anymore. Why txn_manager can be concurrent. Why multiple threads can access the same txn mananger?
