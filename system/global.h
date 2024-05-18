@@ -215,6 +215,9 @@ enum RemReqType
     EXECUTE_MSG, // Execute Notification
     BATCH_REQ,   // Pre-Prepare
 
+    // the requests coming from the sending proxy to the recv proxy
+    BATCH_DEADLINE_REQ,
+
 #if VIEW_CHANGES
     VIEW_CHANGE,
     NEW_VIEW,

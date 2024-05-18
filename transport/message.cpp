@@ -128,6 +128,10 @@ Message *Message::create_message(RemReqType rtype)
 	case BATCH_REQ:
 		msg = new BatchRequests;
 		break;
+	// this is a batch requests coming from the 
+	case BATCH_DEADLINE_REQ:
+		msg = new BatchDeadlineRequests;
+		break;
 
 #if VIEW_CHANGES == true
 	case VIEW_CHANGE:

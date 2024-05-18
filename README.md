@@ -3,7 +3,15 @@
 - [ ] Now that we have created more than just client and replica, we need to redesign the way the sockets are initialized at the transport layer. Who should have how many sockets for what
 - [ ] The send loop (output threads of the sending proxy) of the sending proxy
 - [ ] The message processing of the sending proxy (for now just set an arbitrary deadline that is long enough, details later for delay prediction)
-- [ ] new message type defined for the sending proxy
+- [ ] new message type defined for the sending proxy. Called Batch Deadline Req
+- [ ] The cryptography stuff: Public keys and MAC
+- [ ] Initialization of MAC pair between proxies needed, plus the usual key initialization 
+
+## Long term TODO
+
+- [ ] Think about the view change subprotocol
+- [ ] Optimization at the proxy: Zero copy of the network stack for performance optimization
+- [ ]  
 
 
 ## Notes and Questions Peter(DOM_BFT implementation):

@@ -294,6 +294,26 @@ public:
 
 /***********************************/
 
+class BatchDeadlineRequests : public Message
+{
+public:
+    void copy_from_buf(char *buf);
+    void copy_to_buf(char *buf);
+    void copy_from_txn(TxnManager *txn);
+    void copy_to_txn(TxnManager *txn);
+    uint64_t get_size();
+    void init() {}
+    void release() {}
+    
+    void sig(uint64_t dest_node = UINT64_MAX);
+    bool validate(uint64_t thd_id);
+    
+    uint64_t view;
+    uint64_t hashSize; // Representative hash for the batch.
+    string hash;
+    uint32_t batch_size;
+};
+
 class BatchRequests : public Message
 {
 public:

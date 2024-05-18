@@ -7,6 +7,8 @@
 #include "transport.h"
 #include "work_queue.h"
 
+#include "deadline_oracle.h"
+
 #include "msg_queue.h"
 #include "pool.h"
 #include "txn_table.h"
@@ -26,6 +28,8 @@ TxnTablePool txn_table_pool;
 QryPool qry_pool;
 TxnTable txn_table;
 QWorkQueue work_queue;
+
+DeadlineOracle deadline_orcale;
 
 MessageQueue msg_queue;
 Client_txn client_man;

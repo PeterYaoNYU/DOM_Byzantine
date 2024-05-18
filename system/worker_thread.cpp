@@ -113,7 +113,11 @@ void WorkerThread::process(Message *msg)
         rc = process_key_exchange(msg);
         break;
     case CL_BATCH:
+#if !DOM
         rc = process_client_batch(msg);
+#elif DOM
+        rc = process_client_batch_in_send_proxy(msg);
+#endif
         break;
     case BATCH_REQ:
         rc = process_batch(msg);
@@ -149,6 +153,30 @@ void WorkerThread::process(Message *msg)
         assert(false);
         break;
     }
+}
+
+RC WorkerThread::process_client_batch_in_send_proxy(Message *msg) 
+{
+    ClientQueryBatch *clbatch = (ClientQueryBatch *)msg;
+
+    validate_msg(clbatch);
+
+    add_deadline_and_send_batchreq (clbtch, clbatch->txn_id);
+
+    return RCOK;
+}
+
+
+/* this function is used by the sending proxy
+when a CLBATCH is received, attach a deadline to it 
+and send the txn requests in batch to the recv proxy
+ * @param msg Batch of transactions as a ClientQueryBatch message.
+ * @param tid Identifier for the first transaction of the batch.
+*/
+void WorkerThread::add_deadline_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
+{
+    Message *bmsg = Message::create_message(BATCH_DEADLINE_REQ);
+    BatchRequests *breq = (Batch)
 }
 
 RC WorkerThread::process_key_exchange(Message *msg)
