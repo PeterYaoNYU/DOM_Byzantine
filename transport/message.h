@@ -304,6 +304,8 @@ public:
     uint64_t get_size();
     void init() {}
     void release() {}
+    string getHash();
+    string getString();
     
     void sig(uint64_t dest_node = UINT64_MAX);
     bool validate(uint64_t thd_id);
@@ -312,6 +314,13 @@ public:
     uint64_t hashSize; // Representative hash for the batch.
     string hash;
     uint32_t batch_size;
+    uint64_t return_node; // id of the client who sent this message, not the sending proxy
+    uint64_t deadline; // time since epoch till the deadline
+
+#if BANKING_SMART_CONTRACT
+    Array<BankingSmartContractMessage *> cqrySet;
+#else
+    Array<YCSBClientQueryMessage *> cqrySet;
 };
 
 class BatchRequests : public Message

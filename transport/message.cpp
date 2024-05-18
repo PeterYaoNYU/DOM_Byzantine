@@ -2612,3 +2612,126 @@ void clearAllVCMsg()
 #endif // VIEW_CHANGES
 
 /************************************/
+#if DOM
+string BatchDeadlineRequests::getHash()
+{
+	string batchStr = "";
+	for (uint64_t i = 0; i < get_batch_size(); i++)
+		batchStr += this->cqrySet[i]->getString();
+	return calculateHash(batchStr);
+}
+
+void BatchDeadlineRequests::get_size()
+{
+	uint64_t size = Message::mget_size();
+
+	size += sizeof(return_node);
+	size += sizeof(batch_size);
+
+	for (uint i = 0; i < get_batch_size(); i++)
+	{
+		size += cqrySet[i]->get_size();
+	}
+
+	return size;
+}
+
+void BatchDeadlineRequests::init()
+{
+	this->return_node = g_node_id;
+	this->batch_size = get_batch_size();
+	this->cqrySet.init(get_batch_size());
+}
+
+void BatchDeadlineRequests::release()
+{
+	for (uint64_t i = 0; i < get_batch_size(); i++)
+	{
+		Message::release_message(cqrySet[i]);
+	}
+	cqrySet.release();
+}
+
+void BatchDeadlineRequests::copy_from_txn(TxnManager *txn)
+{
+	assert(0);
+}
+
+void BatchDeadlineRequests::copy_to_txn(TxnManager *txn)
+{
+	Message::mcopy_to_txn(txn);
+	assert(0);
+}
+
+void BatchDeadlineRequests::copy_from_buf(char *buf)
+{
+	Message::mcopy_from_buf(buf);
+
+	uint64_t ptr = Message::mget_size();
+	COPY_VAL(return_node, buf, ptr);
+	COPY_VAL(batch_size, buf, ptr);
+	COPY_VAL(deadline, buf, ptr);
+
+	cqrySet.init(get_batch_size());
+	for (uint i = 0; i < get_batch_size(); i++)
+	{
+		Message *msg = create_message(&buf[ptr]);
+		ptr += msg->get_size();
+#if BANKING_SMART_CONTRACT
+		cqrySet.add((BankingSmartContractMessage *)msg);
+#else
+		cqrySet.add((YCSBClientQueryMessage *)msg);
+#endif
+	}
+
+	assert(ptr == get_size());
+}
+
+void BatchDeadlineRequests::copy_to_buf(char *buf)
+{
+	Message::mcopy_to_buf(buf);
+
+	uint64_t ptr = Message::mget_size();
+	COPY_BUF(buf, return_node, ptr);
+	COPY_BUF(buf, batch_size, ptr);
+	COPY_BUF(buf, deadline, ptr);
+
+	for (uint i = 0; i < get_batch_size(); i++)
+	{
+		cqrySet[i]->copy_to_buf(&buf[ptr]);
+		ptr += cqrySet[i]->get_size();
+	}
+	assert(ptr == get_size());
+}
+
+string BatchDeadlineRequests::getString()
+{
+	string message = std::to_string(this->return_node);
+	for (int i = 0; i < BATCH_SIZE; i++)
+	{
+		message += cqrySet[i]->getRequestString();
+	}
+
+	return message;
+}
+
+
+void BatchDeadlineRequests::sign(uint64_t dest_node)
+{
+#if USE_CRYPTO
+	// for now, leave unimplemented
+	this->signature = "0";
+#else
+	this->signature = "0";
+#endif
+	this->sigSize = this->signature.size();
+	this->keySize = this->pubKey.size();
+}
+
+bool BatchDeadlineRequests::validate()
+{
+	// for now leave, unimplemented. 
+	return true;
+}
+
+#endif

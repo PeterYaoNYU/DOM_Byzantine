@@ -4,7 +4,7 @@
 - [ ] The send loop (output threads of the sending proxy) of the sending proxy
 - [ ] The message processing of the sending proxy (for now just set an arbitrary deadline that is long enough, details later for delay prediction)
 - [ ] new message type defined for the sending proxy. Called Batch Deadline Req
-- [ ] The cryptography stuff: Public keys and MAC
+- [ ] The cryptography stuff: Public keys and MAC from the sending proxy to the recv proxy, for now, leave unimplemented
 - [ ] Initialization of MAC pair between proxies needed, plus the usual key initialization 
 
 ## Long term TODO
