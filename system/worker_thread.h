@@ -34,7 +34,7 @@ public:
     bool checkMsg(Message *msg);
     RC process_client_batch(Message *msg);
     RC process_client_batch_in_send_proxy(Message *msg);
-    void add_deadline_and_send_batchreq (clbtch)
+    void WorkerThread::add_deadline_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid);
     RC process_batch(Message *msg);
     void send_checkpoints(uint64_t txn_id);
     RC process_pbft_chkpt_msg(Message *msg);

@@ -3,9 +3,12 @@
 - [ ] Now that we have created more than just client and replica, we need to redesign the way the sockets are initialized at the transport layer. Who should have how many sockets for what
 - [ ] The send loop (output threads of the sending proxy) of the sending proxy
 - [ ] The message processing of the sending proxy (for now just set an arbitrary deadline that is long enough, details later for delay prediction)
-- [ ] new message type defined for the sending proxy. Called Batch Deadline Req
+- [x] new message type defined for the sending proxy. Called Batch Deadline Req
 - [ ] The cryptography stuff: Public keys and MAC from the sending proxy to the recv proxy, for now, leave unimplemented
 - [ ] Initialization of MAC pair between proxies needed, plus the usual key initialization 
+- [ ] Update the resilientDB-docker script to handle the new proxies
+- [ ] Update the makefile rules to provide compile rules for the proxies (similar to the rundb and runcl rules)
+- [ ] Update the docker-ifconfig.sh configuration to handle the docker network setup, IP address generation
 
 ## Long term TODO
 

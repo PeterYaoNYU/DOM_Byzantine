@@ -18,20 +18,33 @@ LIBS = -lnng -lanl -ljemalloc -lcryptopp -lsqlite3 -ldl
 
 DB_MAINS = ./client/client_main.cpp  ./unit_tests/unit_main.cpp
 CL_MAINS = ./system/main.cpp ./unit_tests/unit_main.cpp
+
+# peter: files to exclude when compiling the send and recv proxies
+SP_MAINS = ./client/client_main.cpp  ./unit_tests/unit_main.cpp
+RP_MAINS = ./client/client_main.cpp  ./unit_tests/unit_main.cpp
+
 UNIT_MAINS = ./system/main.cpp ./client/client_main.cpp 
 
 CPPS_DB = $(foreach dir,$(SRC_DIRS),$(filter-out $(DB_MAINS), $(wildcard $(dir)*.cpp))) 
 CPPS_CL = $(foreach dir,$(SRC_DIRS),$(filter-out $(CL_MAINS), $(wildcard $(dir)*.cpp))) 
 CPPS_UNIT = $(foreach dir,$(SRC_DIRS),$(filter-out $(UNIT_MAINS), $(wildcard $(dir)*.cpp))) 
 
+# peter: add rules for determining the source files for the 
+CPPS_SP = $(foreach dir,$(SRC_DIRS),$(filter-out $(SP_MAINS), $(wildcard $(dir)*.cpp))) 
+CPPS_RP = $(foreach dir,$(SRC_DIRS),$(filter-out $(RP_MAINS), $(wildcard $(dir)*.cpp)))
+
 #CPPS = $(wildcard *.cpp)
 OBJS_DB = $(addprefix obj/, $(notdir $(CPPS_DB:.cpp=.o)))
 OBJS_CL = $(addprefix obj/, $(notdir $(CPPS_CL:.cpp=.o)))
 OBJS_UNIT = $(addprefix obj/, $(notdir $(CPPS_UNIT:.cpp=.o)))
 
+# peter: configure compiled object file dir
+OBJS_SP = $(addprefix obj/, $(notdir $(CPPS_SP:.cpp=.o)))
+OBJS_RP = $(addprefix obj/, $(notdir $(CPPS_RP:.cpp=.o)))
+
 #NOGRAPHITE=1
 
-all:rundb runcl 
+all:rundb runcl runsp runrp
 
 
 .PHONY: deps_db
@@ -40,6 +53,13 @@ deps:$(CPPS_DB)
 	sed '/^[^ ]/s/^/obj\//g' obj/deps > obj/deps.tmp
 	mv obj/deps.tmp obj/deps
 -include obj/deps
+
+# peter: added rules for compiling the target runsp and runrp
+runsp : $(OBJS_SP)
+	$(CC) -static -o $@ $^ $(LDFLAGS) $(LIBS)
+
+runrp : $(OBJS_RP)
+	$(CC) -static -o $@ $^ $(LDFLAGS) $(LIBS)
 
 rundb : $(OBJS_DB)
 	$(CC) -static -o $@ $^ $(LDFLAGS) $(LIBS)

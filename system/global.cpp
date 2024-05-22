@@ -63,6 +63,8 @@ double g_access_perc = ACCESS_PERC;
 bool g_prt_lat_distr = PRT_LAT_DISTR;
 UInt32 g_node_id = 0;
 UInt32 g_node_cnt = NODE_CNT;
+UInt32 g_send_proxy_cnt = SEND_PROXY_CNT;
+UInt32 g_recv_proxy_cnt = RECV_PROXY_CNT;
 UInt32 g_part_cnt = PART_CNT;
 UInt32 g_virtual_part_cnt = VIRTUAL_PART_CNT;
 UInt32 g_core_cnt = CORE_CNT;
@@ -126,7 +128,17 @@ UInt32 g_repl_cnt = REPLICA_CNT;
 /******** Key storage for signing. ***********/
 //ED25519 and RSA
 string g_priv_key;							   //stores this node's private key
-string g_public_key;						   //stores this node's public key
+string g_public_key;
+#if DOM
+string g_pub_keys[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+string cmacPrivateKeys[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+string cmacOthersKeys[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+CryptoPP::ed25519::Verifier verifier[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+CryptoPP::ed25519::Signer signer;
+// Receiving keys
+uint64_t receivedKeys[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+
+#else					   //stores this node's public key
 string g_pub_keys[NODE_CNT + CLIENT_NODE_CNT]; //stores public keys of other nodes.
 //CMAC
 string cmacPrivateKeys[NODE_CNT + CLIENT_NODE_CNT];
@@ -137,6 +149,8 @@ CryptoPP::ed25519::Signer signer;
 
 // Receiving keys
 uint64_t receivedKeys[NODE_CNT + CLIENT_NODE_CNT];
+
+#endif
 
 /*********************************************/
 

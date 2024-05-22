@@ -59,6 +59,7 @@ class MessageQueue;
 class Client_query_queue;
 class Client_txn;
 class GeoBFTCommitCertificateMessage;
+class DeadlineOracle;
 
 // peter: not implemented?
 class PrepCertificateMessage;
@@ -78,6 +79,7 @@ typedef uint64_t ts_t; // time stamp type
 extern uint64_t client_next_txn_id;
 extern std::mutex client_next_txn_id_mtx;
 
+extern DeadlineOracle deadline_orcale;
 
 /******************************************/
 // Global Data Structure
@@ -124,6 +126,8 @@ extern bool g_mem_pad;
 extern bool g_prt_lat_distr;
 extern UInt32 g_node_id;
 extern UInt32 g_node_cnt;
+extern UInt32 g_send_proxy_cnt;
+extern UInt32 g_recv_proxy_cnt;
 extern UInt32 g_part_cnt;
 extern UInt32 g_virtual_part_cnt;
 extern UInt32 g_core_cnt;
@@ -299,16 +303,27 @@ enum access_t
 //ED25519 and RSA
 extern string g_priv_key;                             //stores this node's private key
 extern string g_public_key;                           //stores this node's public key
+
+#if DOM
+extern string g_pub_keys[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+extern string cmacPrivateKeys[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+extern string cmacOthersKeys[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+extern CryptoPP::ed25519::Verifier verifier[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+extern uint64_t receivedKeys[NODE_CNT + CLIENT_NODE_CNT + SEND_PROXY_CNT + RECV_PROXY_CNT];
+#else
 extern string g_pub_keys[NODE_CNT + CLIENT_NODE_CNT]; //stores public keys of other nodes
 //CMAC
 extern string cmacPrivateKeys[NODE_CNT + CLIENT_NODE_CNT];
 extern string cmacOthersKeys[NODE_CNT + CLIENT_NODE_CNT];
 // ED25519
 extern CryptoPP::ed25519::Verifier verifier[NODE_CNT + CLIENT_NODE_CNT];
-extern CryptoPP::ed25519::Signer signer;
-
 // Receiving keys
 extern uint64_t receivedKeys[NODE_CNT + CLIENT_NODE_CNT];
+#endif
+
+extern CryptoPP::ed25519::Signer signer;
+
+
 
 //Types for Keypair
 typedef unsigned char byte;

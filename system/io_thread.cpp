@@ -323,6 +323,7 @@ RC InputThread::send_proxy_recv_loop()
     rdm.init(get_thd_id());
     RC rc = RCOK;
     assert(rc == RCOK);
+    // the starttime seems to be an unused variable. 
     uint64_t starttime = 0;
     uint64_t idle_starttime  = 0;
     std::vector<Message *> *msgs;
@@ -338,7 +339,7 @@ RC InputThread::send_proxy_recv_loop()
             }
             continue;
         }
-        if (idle_starttime > 0 && simulation->is_warmup_done()）{
+        if (idle_starttime > 0 && simulation->is_warmup_done()){
             starttime += get_sys_clock() - idle_starttime;
             idle_starttime = 0;
         }
@@ -368,6 +369,7 @@ RC InputThread::send_proxy_recv_loop()
             msgs->erase(msgs->begin());
         }
     }
+    return FINISH;
 }
 
 RC InputThread::server_recv_loop()

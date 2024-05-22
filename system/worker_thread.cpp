@@ -161,7 +161,7 @@ RC WorkerThread::process_client_batch_in_send_proxy(Message *msg)
 
     validate_msg(clbatch);
 
-    add_deadline_and_send_batchreq (clbtch, clbatch->txn_id);
+    add_deadline_and_send_batchreq (clbatch, clbatch->txn_id);
 
     return RCOK;
 }

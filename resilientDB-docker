@@ -21,6 +21,8 @@ fi
 string_params=($(echo "$@" | grep ${flags} '\-\-[^\-\= ]+\=[^\-\= ]+'))
 replicas=0
 clients=0
+send_proxies=0
+recv_proxies=0
 
 for var in "${string_params[@]}"; do
     key=$(echo "$var" | grep ${flags} '\-\-[^\-\=]+' | grep ${flags} '[^\=\-]+')
@@ -54,6 +56,37 @@ for var in "${string_params[@]}"; do
             exit
         fi
         ;;
+
+
+# peter: check the number of send and recv proxies make sense
+    send_proxies)
+        if [ -n "$value" ] && [ "$value" -eq "$value" ] 2>/dev/null; then
+            if [ "$value" -gt 100 ]; then
+                printf "${RED}Invalid Number of Send Proxies: greater than 100\nAborting...${NC}\n"
+                exit
+            else
+                send_proxies=$value
+            fi
+        else
+            printf "${RED}Invalid Number of Send Proxies: not a number\nAborting...${NC}\n"
+            exit
+        fi
+        ;;
+
+
+    recv_proxies)
+        if [ -n "$value" ] && [ "$value" -eq "$value" ] 2>/dev/null; then
+            if [ "$value" -gt 100 ]; then
+                printf "${RED}Invalid Number of Recv Proxies: greater than 100\nAborting...${NC}\n"
+                exit
+            else
+                recv_proxies=$value
+            fi
+        else
+            printf "${RED}Invalid Number of Recv Proxies: not a number\nAborting...${NC}\n"
+            exit
+        fi
+        ;;
     *) ;;
     esac
 done
@@ -63,8 +96,18 @@ fi
 if [ "$clients" -eq 0 ]; then
     clients=1
 fi
+
+# Peter: add send proxies and recv proxies default vals
+if [ "$send_proxies" -eq 0 ]; then
+    send_proxies=1
+fi
+if [ "$recv_proxies" -eq 0 ]; then
+    recv_proxies=4
+fi
 echo -e "Number of Replicas:\t$replicas"
 echo -e "Number of Clients:\t$clients"
+echo -e "Number of Send Proxies:\t$send_proxies"
+echo -e "Number of Recv Proxies:\t$recv_proxies"
 
 if [ -f "docker-compose.yml" ]; then
     echo "Stopping previous containers..."
@@ -97,6 +140,28 @@ for i in $(seq 1 $clients); do
     echo -e "${t}${t}${t}- ./:/home/expo/resilientdb" >>docker-compose.yml
     echo -e "${t}${t}restart: always" >>docker-compose.yml
 done
+
+# Peter: Add services for send proxies to the docker-compose file
+for i in $(seq 1 $send_proxies); do
+    echo -e "${t}sp${i}:" >>docker-compose.yml
+    echo -e "${t}${t}image: resilientdb/res-machine" >>docker-compose.yml
+    echo -e "${t}${t}container_name: sp${i}" >>docker-compose.yml
+    echo -e "${t}${t}volumes:" >>docker-compose.yml
+    echo -e "${t}${t}${t}- ./:/home/expo/resilientdb" >>docker-compose.yml
+    echo -e "${t}${t}restart: always" >>docker-compose.yml
+done
+
+# Peter: Add services for recv proxies to the docker-compose file
+for i in $(seq 1 $recv_proxies); do
+    echo -e "${t}rp${i}:" >>docker-compose.yml
+    echo -e "${t}${t}image: resilientdb/res-machine" >>docker-compose.yml
+    echo -e "${t}${t}container_name: rp${i}" >>docker-compose.yml
+    echo -e "${t}${t}volumes:" >>docker-compose.yml
+    echo -e "${t}${t}${t}- ./:/home/expo/resilientdb" >>docker-compose.yml
+    echo -e "${t}${t}restart: always" >>docker-compose.yml
+done
+
+
 printf "${GREEN}Docker compose file created --> docker-compose.yml${NC}\n"
 
 echo "Starting the containers..."
@@ -141,9 +206,28 @@ for i in $(seq 1 $clients); do
 done
 printf "${GREEN}Clients started successfully${NC}\n"
 
+# Peter: Run send proxies in their respective containers
+printf "\nRunning Send Proxies...\n"
+for i in $(seq 1 $send_proxies); do
+    echo "sp $i"
+    docker exec sp${i} pkill runsp
+    docker exec sp${i} ./runsp -nid$((i + replicas + clients - 1)) >results/sp${i}.out &
+done
+printf "${GREEN}Send Proxies started successfully${NC}\n"
+
+# Peter: Run recv proxies in their respective containers
+printf "\nRunning Recv Proxies...\n"
+for i in $(seq 1 $recv_proxies); do
+    echo "rp $i"
+    docker exec rp${i} pkill runrp
+    docker exec rp${i} ./runrp -nid$((i + replicas + clients + send_proxies - 1)) >results/rp${i}.out &
+done
+printf "${GREEN}Recv Proxies started successfully${NC}\n"
+
 wait
 
-scripts/result.sh ${replicas} ${clients} PBFT 100 0 >res.out
-scripts/result_colorized.sh ${replicas} ${clients} PBFT 100 0
+# peter: I am not sure if this is the correct way to generate the results with the added proxies
+scripts/result.sh ${replicas} ${clients} ${send_proxies} ${recv_proxies} PBFT 100 0 >res.out
+scripts/result_colorized.sh ${replicas} ${clients} ${send_proxies} ${recv_proxies} PBFT 100 0
 # rm results/*
 printf "${GREEN}Code Ran successfully${NC} ---> res.out\n"

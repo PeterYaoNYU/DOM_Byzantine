@@ -2621,7 +2621,7 @@ string BatchDeadlineRequests::getHash()
 	return calculateHash(batchStr);
 }
 
-void BatchDeadlineRequests::get_size()
+uint64_t BatchDeadlineRequests::get_size()
 {
 	uint64_t size = Message::mget_size();
 
@@ -2728,7 +2728,7 @@ void BatchDeadlineRequests::sign(uint64_t dest_node)
 	this->keySize = this->pubKey.size();
 }
 
-bool BatchDeadlineRequests::validate()
+bool BatchDeadlineRequests::validate(uint64_t thd_id)
 {
 	// for now leave, unimplemented. 
 	return true;

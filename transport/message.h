@@ -302,12 +302,12 @@ public:
     void copy_from_txn(TxnManager *txn);
     void copy_to_txn(TxnManager *txn);
     uint64_t get_size();
-    void init() {}
-    void release() {}
+    void init();
+    void release();
     string getHash();
     string getString();
     
-    void sig(uint64_t dest_node = UINT64_MAX);
+    void sign(uint64_t dest_node = UINT64_MAX);
     bool validate(uint64_t thd_id);
     
     uint64_t view;
@@ -321,6 +321,7 @@ public:
     Array<BankingSmartContractMessage *> cqrySet;
 #else
     Array<YCSBClientQueryMessage *> cqrySet;
+#endif
 };
 
 class BatchRequests : public Message
