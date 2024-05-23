@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
         }
         receivedKeys[i]++;
     }
-    //cout << "_____________ED25519 PRIV KEY: " << g_priv_key << endl;
+    cout << "_____________ED25519 PRIV KEY: " << g_priv_key << endl;
     cout << "_____________ED25519 PUBLIC KEY: " << g_public_key << endl;
     fflush(stdout);
 

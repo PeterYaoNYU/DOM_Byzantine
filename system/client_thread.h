@@ -26,6 +26,9 @@ private:
     uint64_t send_interval;
     uint64_t get_next_txn_id();
     uint64_t get_estimated_exec_time_interval();
+
+    // peter: calculate which proxy the client should send the request to
+    uint64_t calculate_send_proxy();
 };
 
 #endif

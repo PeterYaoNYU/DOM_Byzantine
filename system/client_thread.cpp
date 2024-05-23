@@ -31,7 +31,7 @@ uint64_t ClientThread::get_estimated_exec_time_interval()
 void ClientThread::send_key()
 {
 	// Send everyone the public key.
-	for (uint64_t i = 0; i < g_node_cnt + g_client_node_cnt; i++)
+	for (uint64_t i = 0; i < g_node_cnt + g_client_node_cnt + g_recv_proxy_cnt + g_send_proxy_cnt; i++)
 	{
 		if (i == g_node_id)
 		{
@@ -90,6 +90,12 @@ void ClientThread::setup()
 		send_init_done_to_all_nodes();
 		send_key();
 	}
+}
+
+// peter: calculate which proxy the client should send the request to
+uint64_t ClientThread::calculate_send_proxy() 
+{
+	return (g_node_id - g_node_cnt + 1 + g_node_id);
 }
 
 RC ClientThread::run()
@@ -279,24 +285,41 @@ RC ClientThread::run()
 			// peter: if DOM, we need the client to send it to every node.
 			// O/W just send it to the primary
 #if DOM
-			DEBUG ("Sending to all nodes, but the primary is %u\n", next_node_id);
-			for (uint64_t i = 0; i < g_node_cnt; i++)
-			{
-				char *buf = create_msg_buffer(bmsg);
-				Message *deepCMsg = deep_copy_msg(buf, bmsg);
-				ClientQueryBatch *deepCqry = (ClientQueryBatch *)deepCMsg;
-				// deepCqry->txn_id = 
-				deepCqry->sign(i);
-				delete_msg_buffer(buf);
+			DEBUG ("Sending to the send Porxy %llu, and the primary is %u\n", (unsigned long long int)calculate_send_proxy(), next_node_id);
+			// for (uint64_t i = 0; i < g_node_cnt; i++)
+			// {
+			// 	char *buf = create_msg_buffer(bmsg);
+			// 	Message *deepCMsg = deep_copy_msg(buf, bmsg);
+			// 	ClientQueryBatch *deepCqry = (ClientQueryBatch *)deepCMsg;
+			// 	// deepCqry->txn_id = 
+			// 	deepCqry->sign(i);
+			// 	delete_msg_buffer(buf);
 
-				vector<uint64_t> dest;
-				dest.push_back(i);
-				msg_queue.enqueue(get_thd_id(), deepCMsg, dest);
-				dest.clear();
+			// 	vector<uint64_t> dest;
+			// 	dest.push_back(i);
+			// 	msg_queue.enqueue(get_thd_id(), deepCMsg, dest);
+			// 	dest.clear();
+			// }
+
+			// peter: change of plan, I only send to the corresponding send proxy, and the send proxy will relay to the receiving proxy
+			{
+			uint64_t corresponding_send_proxy_id = calculate_send_proxy();
+			char *buf = create_msg_buffer(bmsg);
+			Message *deepCMsg = deep_copy_msg(buf, bmsg);
+			ClientQueryBatch *deepCqry = (ClientQueryBatch *)deepCMsg;
+			// deepCqry->txn_id = 
+			deepCqry->sign(corresponding_send_proxy_id);
+			delete_msg_buffer(buf);
+
+			vector<uint64_t> dest;
+			dest.push_back(corresponding_send_proxy_id);
+			msg_queue.enqueue(get_thd_id(), deepCMsg, dest);
+			dest.clear();
 			}
+
 #else
 			msg_queue.enqueue(get_thd_id(), bmsg, {next_node_id});
-#endif
+#endif //DOM
 			num_txns_sent += g_batch_size;
 			txns_sent[next_node] += g_batch_size;
 			INC_STATS(get_thd_id(), txn_sent_cnt, g_batch_size);
