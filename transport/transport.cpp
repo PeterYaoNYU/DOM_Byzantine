@@ -24,6 +24,8 @@ void Transport::read_ifconfig(const char *ifaddr_file)
         printf("%ld: %s\n", cnt, ifaddr[cnt]);
         cnt++;
     }
+
+    std::cout << "cnt: " << cnt << " g_total_node_cnt: " << g_total_client_thread_cnt << std::endl;
     assert(cnt == g_total_node_cnt);
 }
 
