@@ -22,6 +22,22 @@ std::vector<Message *> *Message::create_messages(char *buf)
 	COPY_VAL(txn_cnt, data, ptr);
 	assert(dest_id == g_node_id);
 	assert(return_id != g_node_id);
+
+	// peter: debugging
+	printf("create_messages: %d. ret id: %d %d\n", dest_id, return_id, txn_cnt);
+	if (!ISCLIENTN(return_id))
+	{
+		printf("return id not a client \n");
+	}
+	if (!ISSERVERN(return_id))
+	{
+		printf("return id not a server \n");
+	}
+	if (!ISREPLICAN(return_id))
+	{
+		printf("return id not a replica \n");
+	}
+	fflush(stdout);
 	assert(ISCLIENTN(return_id) || ISSERVERN(return_id) || ISREPLICAN(return_id));
 	while (txn_cnt > 0)
 	{

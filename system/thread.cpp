@@ -43,12 +43,16 @@ void Thread::tsetup()
     printf("Setup %ld:%ld\n", _node_id, _thd_id);
     fflush(stdout);
     pthread_barrier_wait(&warmup_bar);
+    printf("Passed first warmup barrier in tsetup(), thread_id:  %ld\n", _thd_id);
+    fflush(stdout);
 
     setup();
 
     printf("Running %ld:%ld\n", _node_id, _thd_id);
     fflush(stdout);
     pthread_barrier_wait(&warmup_bar);
+    std::cout << "passed second warmup barrier in tsetup(), thread_id:  " << _thd_id << std::endl;
+
 
 #if TIME_ENABLE
     run_starttime = get_sys_clock();
@@ -59,6 +63,8 @@ void Thread::tsetup()
     prog_time = run_starttime;
     heartbeat_time = run_starttime;
     pthread_barrier_wait(&warmup_bar);
+    std::cout << "passed third warmup barrier in tsetup(), thread_id:  " << _thd_id << std::endl;
+
 }
 
 bool Thread::has_view_changed()

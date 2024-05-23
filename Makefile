@@ -57,9 +57,45 @@ deps:$(CPPS_DB)
 # peter: added rules for compiling the target runsp and runrp
 runsp : $(OBJS_SP)
 	$(CC) -static -o $@ $^ $(LDFLAGS) $(LIBS)
+./obj/%.o: transport/%.cpp
+	$(CC) -static -c $(CFLAGS) $(INCLUDE) $(LIBS) -o $@ $<
+./obj/%.o: benchmarks/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: blockchain/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: system/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: statistics/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: client/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: %.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: db/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: smart_contracts/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 runrp : $(OBJS_RP)
 	$(CC) -static -o $@ $^ $(LDFLAGS) $(LIBS)
+./obj/%.o: transport/%.cpp
+	$(CC) -static -c $(CFLAGS) $(INCLUDE) $(LIBS) -o $@ $<
+./obj/%.o: benchmarks/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: blockchain/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: system/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: statistics/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: client/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: %.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: db/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
+./obj/%.o: smart_contracts/%.cpp
+	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $<
 
 rundb : $(OBJS_DB)
 	$(CC) -static -o $@ $^ $(LDFLAGS) $(LIBS)

@@ -94,8 +94,10 @@ void ClientThread::setup()
 
 RC ClientThread::run()
 {
-	tsetup();
 	printf("Running ClientThread %ld\n", _thd_id);
+	
+	tsetup();
+	printf("Done setting up ClientThread %ld\n", _thd_id);
 
 	while (true)
 	{

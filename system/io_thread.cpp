@@ -54,7 +54,9 @@ void InputThread::setup()
     // Increment commonVar.
     batchMTX.lock();
     commonVar++;
+    printf("My thread id is %ld, commonVar %u, and I have already come to setup\n", get_thd_id(), commonVar);
     batchMTX.unlock();
+    fflush(stdout);
 
 #if TIME_PROF_ENABLE
     io_thd_id = _thd_id - g_thread_cnt;
@@ -120,8 +122,9 @@ void InputThread::setup()
 
 RC InputThread::run()
 {
-    tsetup();
     printf("Running InputThread %ld\n", _thd_id);
+    tsetup();
+    printf("Done setting up InputThread %ld\n", _thd_id);
 
     if (ISCLIENT)
     {
@@ -432,7 +435,9 @@ RC InputThread::server_recv_loop()
 
 void OutputThread::setup()
 {
-    DEBUG_Q("OutputThread::setup MessageThread alloc %lu\n", _thd_id);
+    // DEBUG_Q("OutputThread::setup MessageThread alloc %lu\n", _thd_id);
+    printf("OutputThread::setup MessageThread alloc %lu\n", _thd_id);
+    fflush(stdout);
     messager = (MessageThread *)mem_allocator.alloc(sizeof(MessageThread));
     uint64_t io_thd_id = _thd_id;
 #if TIME_PROF_ENABLE
@@ -446,13 +451,17 @@ void OutputThread::setup()
         assert(_thd_id >= (g_thread_cnt));
     }
 #endif
-
+    printf("output thread initing\n");
+    fflush(stdout);
     messager->init(io_thd_id);
-
+    printf("output thread inited\n");
+    fflush(stdout);
     // Increment commonVar.
     batchMTX.lock();
     commonVar++;
+    printf("My thread id is %ld, commonVar %u, and I have already come to setup\n", get_thd_id(), commonVar);
     batchMTX.unlock();
+    fflush(stdout);
     messager->idle_starttime = 0;
     while (!simulation->is_setup_done())
     {
@@ -462,9 +471,9 @@ void OutputThread::setup()
 
 RC OutputThread::run()
 {
-
-    tsetup();
     printf("Running OutputThread %ld\n", _thd_id);
+    tsetup();
+    printf("Done setting up OutputThread %ld\n", _thd_id);
 
     while (!simulation->is_done())
     {

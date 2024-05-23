@@ -89,7 +89,9 @@ void WorkerThread::setup()
     // Increment commonVar.
     batchMTX.lock();
     commonVar++;
+    printf("My thread id is %ld, commonVar %u, and I have already come to setup\n", get_thd_id(), commonVar);
     batchMTX.unlock();
+    fflush(stdout);
 
     if (get_thd_id() == 0)
     {
@@ -97,8 +99,11 @@ void WorkerThread::setup()
             ;
 
         send_init_done_to_all_nodes();
-
+        printf("Sent init done to all\n");
+        fflush(stdout);
         send_key();
+    } else {
+        fflush(stdout);
     }
     _thd_txn_id = 0;
 }
@@ -158,6 +163,8 @@ void WorkerThread::process(Message *msg)
 RC WorkerThread::process_client_batch_in_send_proxy(Message *msg) 
 {
     ClientQueryBatch *clbatch = (ClientQueryBatch *)msg;
+
+    std::cout << "Send Proxy received a client request" << std::endl;
 
     validate_msg(clbatch);
 
@@ -641,8 +648,10 @@ RC WorkerThread::process_new_view_msg(Message *msg)
 // peter: it is not clear to me what agcount mean?
 RC WorkerThread::run()
 {
-    tsetup();
     printf("Running WorkerThread %ld\n", _thd_id);
+    tsetup();
+    printf("Done setting up WorkerThread %ld\n", _thd_id);
+
 
     uint64_t agCount = 0, ready_starttime, idle_starttime = 0;
 

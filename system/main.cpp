@@ -255,6 +255,7 @@ int main(int argc, char *argv[])
     printf("Initialization Time = %ld\n", endtime - starttime);
     fflush(stdout);
     warmup_done = true;
+    std::cout << "all thd cnt: " << all_thd_cnt << std::endl;
     pthread_barrier_init(&warmup_bar, NULL, all_thd_cnt);
 
     // spawn and run txns again.
@@ -297,9 +298,12 @@ int main(int argc, char *argv[])
     pthread_setname_np(p_thds[id - 1], "s_logger");
 #endif
 
+    std::cout << "waiting for all threads to join" << std::endl;
     for (uint64_t i = 0; i < all_thd_cnt; i++)
         pthread_join(p_thds[i], NULL);
 
+    std::cout << "Done waiting for all threads to join" << std::endl;
+    
     endtime = get_server_clock();
 
     fflush(stdout);

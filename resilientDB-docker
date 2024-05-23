@@ -91,7 +91,7 @@ for var in "${string_params[@]}"; do
     esac
 done
 if [ "$replicas" -eq 0 ]; then
-    replicas=4
+    replicas=7
 fi
 if [ "$clients" -eq 0 ]; then
     clients=1
@@ -102,7 +102,7 @@ if [ "$send_proxies" -eq 0 ]; then
     send_proxies=1
 fi
 if [ "$recv_proxies" -eq 0 ]; then
-    recv_proxies=4
+    recv_proxies=1
 fi
 echo -e "Number of Replicas:\t$replicas"
 echo -e "Number of Clients:\t$clients"
@@ -193,7 +193,7 @@ mkdir -p results
 for i in $(seq 1 $replicas); do
     echo "rep $i"
     docker exec s${i} pkill rundb
-    docker exec s${i} ./rundb -nid$((i - 1)) >results/s${replicas}_c${clients}_results_PBFT_b100_run0_node$((i - 1)).out &
+    docker exec s${i} ./rundb -nid$((i - 1)) >results/s${replicas}_c${clients}_results_PBFT_b100_run0_node$((i - 1)).out 2>results/err/s${replicas}_c${clients}_results_PBFT_b100_run0_node$((i - 1)).err&
 done
 printf "${GREEN}Replicas started successfully${NC}\n"
 
@@ -202,7 +202,7 @@ cl=$replicas
 for i in $(seq 1 $clients); do
     echo "cl $i"
     docker exec c${i} pkill runcl
-    docker exec c${i} ./runcl -nid$((i + replicas - 1)) >results/s${replicas}_c${clients}_results_PBFT_b100_run0_node$((i + replicas - 1)).out &
+    docker exec c${i} ./runcl -nid$((i + replicas - 1)) >results/s${replicas}_c${clients}_results_PBFT_b100_run0_node$((i + replicas - 1)).out 2>results/err/s${replicas}_c${clients}_results_PBFT_b100_run0_node$((i + replicas - 1)).err&
 done
 printf "${GREEN}Clients started successfully${NC}\n"
 
@@ -211,7 +211,7 @@ printf "\nRunning Send Proxies...\n"
 for i in $(seq 1 $send_proxies); do
     echo "sp $i"
     docker exec sp${i} pkill runsp
-    docker exec sp${i} ./runsp -nid$((i + replicas + clients - 1)) >results/sp${i}.out &
+    docker exec sp${i} ./runsp -nid$((i + replicas + clients - 1)) >results/sp${i}.out 2>results/err/sp${i}.out &
 done
 printf "${GREEN}Send Proxies started successfully${NC}\n"
 
@@ -220,7 +220,7 @@ printf "\nRunning Recv Proxies...\n"
 for i in $(seq 1 $recv_proxies); do
     echo "rp $i"
     docker exec rp${i} pkill runrp
-    docker exec rp${i} ./runrp -nid$((i + replicas + clients + send_proxies - 1)) >results/rp${i}.out &
+    docker exec rp${i} ./runrp -nid$((i + replicas + clients + send_proxies - 1)) >results/rp${i}.out 2>results/err/rp${i}.out &
 done
 printf "${GREEN}Recv Proxies started successfully${NC}\n"
 
