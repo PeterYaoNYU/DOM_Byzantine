@@ -29,9 +29,13 @@ OUTPUT="$(docker ps --format '{{.Names}}' | grep -${flags} "c[\d]*|s[\d]*|sp[\d]
 IPC=""
 echo "Server sequence --> IP"
 CLIENTS=""
+SEND_PROXIES=""
+RECV_PROXIES=""
+
+
 for server in ${OUTPUT}; do
     #Get just the IP Address of all the servers
-    IPC="$(docker inspect $server | grep -${flags}o '"IPAddress": *"([0-9]{1,3}[\.]){3}[0-9]{1,3}"'| grep -${flags}o "([0-9]{1,3}[\.]){3}[0-9]{1,3}")"
+    IP="$(docker inspect $server | grep -${flags}o '"IPAddress": *"([0-9]{1,3}[\.]){3}[0-9]{1,3}"'| grep -${flags}o "([0-9]{1,3}[\.]){3}[0-9]{1,3}")"
 
     # Check if the container is a client
     if [[ "$server" =~ ^c[0-9]+ ]]; then

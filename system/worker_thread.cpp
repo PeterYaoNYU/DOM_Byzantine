@@ -175,8 +175,9 @@ and send the txn requests in batch to the recv proxy
 */
 void WorkerThread::add_deadline_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
 {
-    Message *bmsg = Message::create_message(BATCH_DEADLINE_REQ);
-    BatchRequests *breq = (Batch)
+    // Message *bmsg = Message::create_message(BATCH_DEADLINE_REQ);
+    std::cout << "adding deadline and relaying msgs" << std::endl;
+    return;
 }
 
 RC WorkerThread::process_key_exchange(Message *msg)
