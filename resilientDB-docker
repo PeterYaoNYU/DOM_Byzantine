@@ -91,7 +91,7 @@ for var in "${string_params[@]}"; do
     esac
 done
 if [ "$replicas" -eq 0 ]; then
-    replicas=7
+    replicas=4
 fi
 if [ "$clients" -eq 0 ]; then
     clients=1
@@ -183,9 +183,9 @@ printf "\nCreating config file...\n"
 printf "${GREEN}Config file has been created${NC}\n"
 
 printf "\nCompiling ResilientDB...\n"
-docker exec s1 mkdir -p obj
-docker exec s1 make clean
-docker exec s1 make
+# docker exec s1 mkdir -p obj
+# docker exec s1 make clean
+# docker exec s1 make
 printf "${GREEN}ResilientDB is compiled successfully${NC}\n"
 
 printf "\nRunning ResilientDB replicas...\n"
@@ -211,7 +211,7 @@ printf "\nRunning Send Proxies...\n"
 for i in $(seq 1 $send_proxies); do
     echo "sp $i"
     docker exec sp${i} pkill runsp
-    docker exec sp${i} ./runsp -nid$((i + replicas + clients - 1)) >results/sp${i}.out 2>results/err/sp${i}.out &
+    docker exec sp${i} ./runsp -nid$((i + replicas + clients - 1)) >results/sp${i}.out 2>results/err/sp${i}.err &
 done
 printf "${GREEN}Send Proxies started successfully${NC}\n"
 
@@ -220,7 +220,7 @@ printf "\nRunning Recv Proxies...\n"
 for i in $(seq 1 $recv_proxies); do
     echo "rp $i"
     docker exec rp${i} pkill runrp
-    docker exec rp${i} ./runrp -nid$((i + replicas + clients + send_proxies - 1)) >results/rp${i}.out 2>results/err/rp${i}.out &
+    docker exec rp${i} ./runrp -nid$((i + replicas + clients + send_proxies - 1)) >results/rp${i}.out 2>results/err/rp${i}.err &
 done
 printf "${GREEN}Recv Proxies started successfully${NC}\n"
 
