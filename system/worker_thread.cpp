@@ -13,6 +13,7 @@
 #include "message.h"
 #include "timer.h"
 #include "chain.h"
+#include "deadline_oracle.h"
 
 void WorkerThread::send_key()
 {
@@ -124,6 +125,9 @@ void WorkerThread::process(Message *msg)
         rc = process_client_batch_in_send_proxy(msg);
 #endif
         break;
+    case BATCH_DEADLINE_REQ:
+        rc = process_batch_deadline_req_in_recv_proxy(msg);
+        break;
     case BATCH_REQ:
         rc = process_batch(msg);
         break;
@@ -160,6 +164,13 @@ void WorkerThread::process(Message *msg)
     }
 }
 
+RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
+{
+    printf("Received batch deadline request inn recv proxy\n");
+    fflush(stdout);
+    return RCOK;
+}
+
 RC WorkerThread::process_client_batch_in_send_proxy(Message *msg) 
 {
     ClientQueryBatch *clbatch = (ClientQueryBatch *)msg;
@@ -182,8 +193,47 @@ and send the txn requests in batch to the recv proxy
 */
 void WorkerThread::add_deadline_and_send_batchreq(ClientQueryBatch *msg, uint64_t tid)
 {
-    // Message *bmsg = Message::create_message(BATCH_DEADLINE_REQ);
-    std::cout << "adding deadline and relaying msgs" << std::endl;
+    printf("add_deadline_and_send_batchreq\n");
+    std::cout << "CQRY set size in the add deadline function: " << msg->cqrySet.size() << std::endl;
+	fflush(stdout);
+    Message *bmsg = Message::create_message(BATCH_DEADLINE_REQ);
+    BatchDeadlineRequests *breq = (BatchDeadlineRequests *)bmsg;
+    breq->init(get_thd_id()); 
+
+    printf("Done init the batch deadline request\n");
+	fflush(stdout);
+
+    breq->deadline = deadline_orcale.make_deadline_prediction();
+
+    printf("Done adding deadline\n");
+	fflush(stdout);
+
+    // peter: copy the cqry set to the deadline batch requests
+    for (uint64_t i = 0; i < msg->cqrySet.size(); i++) {
+        char *brf = (char *)malloc(msg->cqrySet[i]->get_size());
+        msg->cqrySet[i]->copy_to_buf(brf);
+        Message *tmsg = Message::create_message(brf);
+        YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
+        free(brf);
+
+        breq->cqrySet[i] = yqry;
+    }
+
+    vector<uint64_t> dest;
+    for (uint64_t i = g_node_cnt + g_client_node_cnt + g_send_proxy_cnt; i < g_recv_proxy_cnt + g_node_cnt + g_client_node_cnt + g_send_proxy_cnt; i++) {
+        if (i == g_node_id) {
+            continue;
+        }
+        dest.push_back(i);
+    }
+
+    printf("Done pushing destinations\n");
+	fflush(stdout);
+
+    msg_queue.enqueue(get_thd_id(), breq, dest);
+    dest.clear();
+    std::cout << "Added deadline and relaying msgs" << std::endl;
+
     return;
 }
 

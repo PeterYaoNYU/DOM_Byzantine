@@ -302,7 +302,8 @@ public:
     void copy_from_txn(TxnManager *txn);
     void copy_to_txn(TxnManager *txn);
     uint64_t get_size();
-    void init();
+    void init() {}
+    void init(uint64_t thd_id);
     void release();
     string getHash();
     string getString();
@@ -320,7 +321,7 @@ public:
 #if BANKING_SMART_CONTRACT
     Array<BankingSmartContractMessage *> cqrySet;
 #else
-    Array<YCSBClientQueryMessage *> cqrySet;
+    vector<YCSBClientQueryMessage *> cqrySet;
 #endif
 };
 

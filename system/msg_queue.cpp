@@ -75,6 +75,15 @@ void MessageQueue::enqueue(uint64_t thd_id, Message *msg, const vector<uint64_t>
             entry->allsign.push_back(msg->signature);
         }
         break;
+    case BATCH_DEADLINE_REQ:
+        for (uint64_t i = 0; i < dest.size(); i++)
+        {
+            ((BatchDeadlineRequests *)msg)->sign(dest[i]);
+            entry->allsign.push_back(msg->signature);
+        }
+        printf("Done signing batch deadline requests at send proxy\n");
+        fflush(stdout);
+        break;
     case PBFT_CHKPT_MSG:
         for (uint64_t i = 0; i < dest.size(); i++)
         {
@@ -165,6 +174,9 @@ void MessageQueue::enqueue(uint64_t thd_id, Message *msg, const vector<uint64_t>
     case PBFT_CHKPT_MSG:
     case PBFT_PREP_MSG:
     case PBFT_COMMIT_MSG:
+    // peter: for now, treat the msg to the recv proxy as sending to multiple
+    // while in my initial experiment setup, there is only one recv proxy.
+    case BATCH_DEADLINE_REQ:
 
 #if GBFT
     case GBFT_COMMIT_CERTIFICATE_MSG:

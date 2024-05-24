@@ -352,6 +352,13 @@ void Message::release_message(Message *msg)
 		delete m_msg;
 		break;
 	}
+	case BATCH_DEADLINE_REQ:
+	{
+		BatchDeadlineRequests *m_msg = (BatchDeadlineRequests *)msg;
+		m_msg->release();
+		delete m_msg;
+		break;
+	}
 	case RDONE:
 	{
 		DoneMessage *m_msg = (DoneMessage *)msg;
@@ -1307,6 +1314,8 @@ bool ClientQueryBatch::validate()
 	}
 #else
 	// make sure signature is valid
+	printf("Client Query Batch: Validating the message\n");
+	fflush(stdout);
 	if (!validateClientNode(message, this->pubKey, this->signature, this->return_node))
 	{
 		DEBUG ("Client Query Batch: Validation of the message failed\n")
@@ -2643,6 +2652,7 @@ uint64_t BatchDeadlineRequests::get_size()
 
 	size += sizeof(return_node);
 	size += sizeof(batch_size);
+	size += sizeof(deadline);
 
 	for (uint i = 0; i < get_batch_size(); i++)
 	{
@@ -2652,11 +2662,12 @@ uint64_t BatchDeadlineRequests::get_size()
 	return size;
 }
 
-void BatchDeadlineRequests::init()
+void BatchDeadlineRequests::init(uint64_t thd_id)
 {
+	this->view = get_current_view(thd_id);
 	this->return_node = g_node_id;
 	this->batch_size = get_batch_size();
-	this->cqrySet.init(get_batch_size());
+	this->cqrySet.reserve(get_batch_size());
 }
 
 void BatchDeadlineRequests::release()
@@ -2665,7 +2676,7 @@ void BatchDeadlineRequests::release()
 	{
 		Message::release_message(cqrySet[i]);
 	}
-	cqrySet.release();
+	cqrySet.clear();
 }
 
 void BatchDeadlineRequests::copy_from_txn(TxnManager *txn)
@@ -2681,6 +2692,9 @@ void BatchDeadlineRequests::copy_to_txn(TxnManager *txn)
 
 void BatchDeadlineRequests::copy_from_buf(char *buf)
 {
+	printf("Copyting the deadline request from buf\n");
+	std::cout << "Array count " << cqrySet.size() << "\n"; 
+	fflush(stdout);
 	Message::mcopy_from_buf(buf);
 
 	uint64_t ptr = Message::mget_size();
@@ -2688,15 +2702,15 @@ void BatchDeadlineRequests::copy_from_buf(char *buf)
 	COPY_VAL(batch_size, buf, ptr);
 	COPY_VAL(deadline, buf, ptr);
 
-	cqrySet.init(get_batch_size());
+	cqrySet.reserve(get_batch_size());
 	for (uint i = 0; i < get_batch_size(); i++)
 	{
 		Message *msg = create_message(&buf[ptr]);
 		ptr += msg->get_size();
 #if BANKING_SMART_CONTRACT
-		cqrySet.add((BankingSmartContractMessage *)msg);
+		cqrySet.push_back((BankingSmartContractMessage *)msg);
 #else
-		cqrySet.add((YCSBClientQueryMessage *)msg);
+		cqrySet.push_back((YCSBClientQueryMessage *)msg);
 #endif
 	}
 
@@ -2705,6 +2719,9 @@ void BatchDeadlineRequests::copy_from_buf(char *buf)
 
 void BatchDeadlineRequests::copy_to_buf(char *buf)
 {
+	printf("Copyting the deadline request to buf\n");
+	std::cout << "Array count " << cqrySet.size() << "\n"; 
+	fflush(stdout);
 	Message::mcopy_to_buf(buf);
 
 	uint64_t ptr = Message::mget_size();
@@ -2717,16 +2734,22 @@ void BatchDeadlineRequests::copy_to_buf(char *buf)
 		cqrySet[i]->copy_to_buf(&buf[ptr]);
 		ptr += cqrySet[i]->get_size();
 	}
+	std::cout << "ptr size: "  << ptr << " message size: " << get_size() << std::endl;
+
 	assert(ptr == get_size());
 }
 
 string BatchDeadlineRequests::getString()
 {
 	string message = std::to_string(this->return_node);
+	std::cout << "cqrySet Count: " << cqrySet.size() << "\n";
+	std::cout.flush();
 	for (int i = 0; i < BATCH_SIZE; i++)
 	{
 		message += cqrySet[i]->getRequestString();
 	}
+	printf("Done getting string from batch deadline requests\n");
+	fflush(stdout);
 
 	return message;
 }
@@ -2735,7 +2758,9 @@ string BatchDeadlineRequests::getString()
 void BatchDeadlineRequests::sign(uint64_t dest_node)
 {
 #if USE_CRYPTO
-	// for now, leave unimplemented
+	string message = getString();
+
+	// signingNodeNode(message, this->signature, this->pubKey, dest_node);
 	this->signature = "0";
 #else
 	this->signature = "0";
