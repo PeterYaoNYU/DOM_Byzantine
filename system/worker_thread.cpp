@@ -166,7 +166,7 @@ void WorkerThread::process(Message *msg)
 
 RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
 {
-    printf("Received batch deadline request inn recv proxy\n");
+    printf("Received batch deadline request in recv proxy\n");
     fflush(stdout);
     return RCOK;
 }
@@ -224,6 +224,7 @@ void WorkerThread::add_deadline_and_send_batchreq(ClientQueryBatch *msg, uint64_
         if (i == g_node_id) {
             continue;
         }
+        std::cout << "adding destination: " << i << std::endl;
         dest.push_back(i);
     }
 

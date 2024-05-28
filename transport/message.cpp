@@ -2750,6 +2750,7 @@ string BatchDeadlineRequests::getString()
 	}
 	printf("Done getting string from batch deadline requests\n");
 	fflush(stdout);
+	message += std::to_string(this->deadline);
 
 	return message;
 }
@@ -2758,10 +2759,9 @@ string BatchDeadlineRequests::getString()
 void BatchDeadlineRequests::sign(uint64_t dest_node)
 {
 #if USE_CRYPTO
-	string message = getString();
-
-	// signingNodeNode(message, this->signature, this->pubKey, dest_node);
-	this->signature = "0";
+	string message = this->getString();
+	printf("before signing a batch deadline requests\n");
+	signingNodeNode(message, this->signature, this->pubKey, dest_node);
 #else
 	this->signature = "0";
 #endif

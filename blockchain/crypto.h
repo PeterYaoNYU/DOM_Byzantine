@@ -325,11 +325,23 @@ inline string CmacSignString(const std::string &aPrivateKeyStrHex,
 
     //KEY TRANSFORMATION. https://stackoverflow.com/questions/26145776/string-to-secbyteblock-conversion
 
+    std::cout << "private key Hex: " << aPrivateKeyStrHex << std::endl;
+
+    printf("before signing with CMAC\n");
+    fflush(stdout);
+
+
     SecByteBlock privKey((const unsigned char *)(aPrivateKeyStrHex.data()), aPrivateKeyStrHex.size());
 
+
+
+    printf("Done getting CMAC priv key\n");
     CMAC<AES> cmac(privKey.data(), privKey.size());
+    std::cout << "Constructed CMAC instance, size: " << privKey.size() << std::endl;
 
     StringSource ss1(aMessage, true, new HashFilter(cmac, new StringSink(mac)));
+
+    std::cout << "finish signing with CMAC" << std::endl;
 
     return mac;
 }
@@ -402,6 +414,7 @@ inline bool validateClientNode(string message, string pubKey, string signature, 
 #if CRYPTO_METHOD_RSA
     return RsaVerifyString(pubKey, message, signature);
 #elif CRYPTO_METHOD_ED25519
+    std::cout << "validating ed25519 of ret node id: " << return_node_id << std::endl;
     return ED25519verifyString(message, signature, return_node_id);
 #elif CRYPTO_METHOD_CMAC_AES
     return CmacVerifyString(pubKey, message, signature);

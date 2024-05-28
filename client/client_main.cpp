@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
   for the id g_node_id
   */
 
-    for (unsigned int i = 0; i < g_node_cnt + g_client_node_cnt; i++)
+    for (unsigned int i = 0; i < g_node_cnt + g_client_node_cnt + g_send_proxy_cnt + g_recv_proxy_cnt; i++)
     {
         cmacPrivateKeys[i] = CmacGenerateHexKey(16);
         if (i == g_node_id)

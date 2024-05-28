@@ -96,6 +96,7 @@ void ClientThread::setup()
 uint64_t ClientThread::calculate_send_proxy() 
 {
 	return (g_node_id - g_node_cnt + 1 + g_node_id);
+	// return (g_node_cnt + g_client_node_cnt + 1 );
 }
 
 RC ClientThread::run()
