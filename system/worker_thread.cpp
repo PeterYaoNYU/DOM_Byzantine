@@ -166,7 +166,12 @@ void WorkerThread::process(Message *msg)
 
 RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
 {
-    printf("Received batch deadline request in recv proxy\n");
+    BatchDeadlineRequests *breq = (BatchDeadlineRequests *)msg; 
+
+    printf("Batch Deadline Requests from %ld:    %ld\n", msg->return_node_id, breq->deadline);
+    // Check if message is valid.
+    validate_msg(breq);
+
     fflush(stdout);
     return RCOK;
 }
@@ -1398,6 +1403,12 @@ bool WorkerThread::validate_msg(Message *msg)
         break;
     case PBFT_COMMIT_MSG:
         if (!((PBFTCommitMessage *)msg)->validate())
+        {
+            assert(0);
+        }
+        break;
+    case BATCH_DEADLINE_REQ:
+        if (!((BatchDeadlineRequests *)msg)->validate(get_thd_id()))
         {
             assert(0);
         }

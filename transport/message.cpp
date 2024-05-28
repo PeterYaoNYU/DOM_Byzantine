@@ -2771,6 +2771,16 @@ void BatchDeadlineRequests::sign(uint64_t dest_node)
 
 bool BatchDeadlineRequests::validate(uint64_t thd_id)
 {
+#if USE_CRYPTO
+	//is signature valid
+	string message = this->getString();
+	if (!validateNodeNode(message, this->pubKey, this->signature, this->return_node_id))
+	{
+		DEBUG ("BatchDeadlineRequests::validate signature failed\n");
+		assert(0);
+		return false;
+	}
+#endif
 	// for now leave, unimplemented. 
 	return true;
 }
