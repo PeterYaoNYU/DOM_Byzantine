@@ -22,6 +22,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <math.h>
+#include <queue>
 
 #include "./helper.h"
 #include "pthread.h"
@@ -60,6 +61,9 @@ class Client_query_queue;
 class Client_txn;
 class GeoBFTCommitCertificateMessage;
 class DeadlineOracle;
+class DeadlinePQObj;
+class CompareDeadlinePQObj;
+class ThreadSafePriorityQueue;
 
 // peter: not implemented?
 class PrepCertificateMessage;
@@ -80,6 +84,9 @@ extern uint64_t client_next_txn_id;
 extern std::mutex client_next_txn_id_mtx;
 
 extern DeadlineOracle deadline_orcale;
+// the priority queue at the receiving proxy side
+// extern std::priority_queue<DeadlinePQObj, std::vector<DeadlinePQObj>, CompareDeadlinePQObj> deadline_pq;
+extern ThreadSafePriorityQueue deadline_pq;
 
 /******************************************/
 // Global Data Structure

@@ -17,7 +17,8 @@
 
 - [ ] Think about the view change subprotocol
 - [ ] Optimization at the proxy: Zero copy of the network stack for performance optimization
-- [ ]  
+- [ ] Recv Proxy can have multiple priority queues for each worker threads to alleviate lock contentions. But I do need to think about how to assign it. Maybe based on the send proxies, which is unfortunate first because right now I only have one send proxy, and secondly, this may lead to load imbalance 
+- [ ] 
 
 
 ## Notes and Questions Peter(DOM_BFT implementation):

@@ -8,6 +8,7 @@
 #include "work_queue.h"
 
 #include "deadline_oracle.h"
+#include "recv_proxy_pq_obj.h"
 
 #include "msg_queue.h"
 #include "pool.h"
@@ -30,6 +31,8 @@ TxnTable txn_table;
 QWorkQueue work_queue;
 
 DeadlineOracle deadline_orcale;
+
+ThreadSafePriorityQueue deadline_pq;
 
 MessageQueue msg_queue;
 Client_txn client_man;

@@ -42,6 +42,9 @@ public:
     RC process_batch(Message *msg);
     void send_checkpoints(uint64_t txn_id);
     RC process_pbft_chkpt_msg(Message *msg);
+
+    RC dispatch_request_to_replicas(BatchDeadlineRequests *breq);
+    RC check_deadline_pq_and_send_out_due_batches();
 #if BANKING_SMART_CONTRACT
     void init_txn_man(BankingSmartContractMessage *bscm);
 #else

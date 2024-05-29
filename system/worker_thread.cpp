@@ -14,6 +14,7 @@
 #include "timer.h"
 #include "chain.h"
 #include "deadline_oracle.h"
+#include "recv_proxy_pq_obj.h"
 
 void WorkerThread::send_key()
 {
@@ -164,6 +165,9 @@ void WorkerThread::process(Message *msg)
     }
 }
 
+// peter: when receiving a message
+// 1. if the deadline has not passed: push to the priority queue and wait for the work thread to get back to you
+// 2. if the deadline has already passed: directly dispatch the message to the replica
 RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
 {
     BatchDeadlineRequests *breq = (BatchDeadlineRequests *)msg; 
@@ -172,6 +176,37 @@ RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
     // Check if message is valid.
     validate_msg(breq);
 
+    auto deadline = breq->deadline;
+    auto cqrySet = breq->cqrySet;
+
+    std::cout << "Recv Proxy received a batch with deadline: " << deadline << std::endl;
+
+    // peter: construct the object and push it to the priority queue
+    auto currentTime = get_sys_clock();
+
+    if (deadline > currentTime) {
+        dispatch_request_to_replicas(breq);
+    }
+    
+    DeadlinePQObj* pqObj = new DeadlinePQObj(deadline, cqrySet, breq->return_node_id);
+    deadline_pq.push(*pqObj);
+    
+    fflush(stdout);
+    return RCOK;
+}
+
+RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
+{
+    uint64_t client_node_id = breq->return_node_id;
+    auto cqrySet = breq->cqrySet;
+
+    // create a batch request message
+    Message *msg = Message::create_message(BATCH_REQ);
+    for (uint64_t i = 0; i < g_node_cnt; i++) {
+        msg->dest.push_back(i);
+    }
+
+    std::cout << "dispatching request to replicas, tid: " << breq->txn_id << " client node id: "<< client_node_id << std::endl;
     fflush(stdout);
     return RCOK;
 }
@@ -804,6 +839,12 @@ RC WorkerThread::run()
         Message::release_message(msg);
 
         INC_STATS(get_thd_id(), worker_release_msg_time, get_sys_clock() - ready_starttime);
+
+        // peter: if it is the recv proxy, handle the extra logic of checking if a deadline has passed 
+        if (g_node_id >= g_node_cnt + g_client_node_cnt + g_send_proxy_cnt) {
+            check_deadline_pq_and_send_out_due_batches();
+        }
+        
     }
     printf("FINISH: %ld\n", agCount);
     fflush(stdout);
@@ -892,6 +933,25 @@ void WorkerThread::init_txn_man(YCSBClientQueryMessage *clqry)
     }
 }
 #endif
+
+
+RC WorkerThread::check_deadline_pq_and_send_out_due_batches()
+{
+    // TO-BE implememted
+
+    // 1. check if the deadline of the top element of the priority queue has passed
+    DeadlinePQObj top_batch;
+    deadline_pq.tryPeek(top_batch);
+
+    // 2. if the deadline has passed, send the batch to the replica
+    if (top_batch.get_deadline() > get_sys_clock()) {
+        deadline_pq.tryPop(top_batch);
+        // dispatch_request_to_replicas(top_batch.get_cqrySet());
+    }
+    return RCOK;
+}
+
+
 /**
  * Create an message of type ExecuteMessage, to notify the execute-thread that this
  * batch of transactions are ready to be executed. This message is placed in one of the
