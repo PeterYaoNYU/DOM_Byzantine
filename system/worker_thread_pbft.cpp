@@ -87,7 +87,10 @@ RC WorkerThread::process_batch(Message *msg)
     // }
 
     // Assert that only a non-primary replica has received this message.
+
+#if !DOM
     assert(g_node_id != get_current_view(get_thd_id()));
+#endif
 
     // Check if the message is valid.
     validate_msg(breq);
