@@ -421,6 +421,12 @@ RC InputThread::server_recv_loop()
                 msg->txn_id = get_and_inc_next_idx();
                 INC_STATS(_thd_id, msg_cl_in, 1);
             }
+            if (msg->rtype == BATCH_DEADLINE_REQ)
+            {
+                auto breq = (BatchDeadlineRequests*)msg;
+                auto deadline  = breq->deadline;
+                printf("Getting deadline req, deadline: %ld, current systime: %ld, difference: %ld\n", deadline, get_sys_clock(), deadline - get_sys_clock());
+            }
 
             work_queue.enqueue(get_thd_id(), msg, false);
             msgs->erase(msgs->begin());

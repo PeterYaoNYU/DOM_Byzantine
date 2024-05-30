@@ -172,7 +172,7 @@ RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
 {
     BatchDeadlineRequests *breq = (BatchDeadlineRequests *)msg; 
 
-    printf("Batch Deadline Requests from %ld:    %ld\n", msg->return_node_id, breq->deadline);
+    printf("Batch Deadline Requests from %ld:    %ld, current sys clock: %ld\n", msg->return_node_id, breq->deadline, get_sys_clock());
     // Check if message is valid.
     validate_msg(breq);
 
@@ -202,16 +202,21 @@ RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
 // from the recv proxy to all the replicas. 
 RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
 {
+    std::cout << "dispatching batch requests to replicas from recv proxy from the batch requests " << std::endl;
     uint64_t client_node_id = breq->return_node_id;
     auto cqrySet = breq->cqrySet;
 
+    std::cout << "Dispatching: got the cqryset and the client node id: " << client_node_id << std::endl;
+
     // create a batch request message
     Message *msg = Message::create_message(BATCH_REQ);
+    ((BatchRequests *)msg)->index.init(get_batch_size());
 
     // push back all the destinations 
     for (uint64_t i = 0; i < g_node_cnt; i++) {
         msg->dest.push_back(i);
     }
+    std::cout << "Dispatching: pushed the destinations" << std::endl;
 
     // assign the recv_proxy speculative txn id and batch id
     recv_proxy_txn_assignment_mtx.lock();
@@ -221,18 +226,25 @@ RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
 
     recv_proxy_txn_assignment_mtx.unlock();
 
+    std::cout << "Dispatching: assigned the txn id: "<< msg->txn_id <<" and batch id: " << msg->batch_id << std::endl;
+
     // add the queries to the message
-    for (auto i = 0; i < cqrySet.size(); i++) {
+    for (size_t i = 0; i < cqrySet.size(); i++) {
         char *brf = (char *)malloc(cqrySet[i]->get_size());
         cqrySet[i]->copy_to_buf(brf);
         Message *tmsg = Message::create_message(brf);
         YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
         free(brf);
-        ((BatchRequests *)msg)->cqrySet.push_back(yqry);
+        ((BatchRequests *)msg)->requestMsg.push_back(yqry);
+
+        ((BatchRequests *)msg)->index.add(msg->txn_id+i);
     } 
+
+    std::cout << "Dispatching: added the queries to the message" << std::endl;
 
     // fill the return node: the client to get back to, who will be doing the linearization and the vote check
     msg->return_node_id = client_node_id;
+    std::cout << "Dispatching: assigning return node id complete" << std::endl;
 
     // TODO: the hash part of the batch requests is left unimplemented
     // TODO: I honestly do not think that the batch size needs to be filled in
@@ -240,23 +252,30 @@ RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
     // send the message to the replicas
     msg_queue.enqueue(get_thd_id(), msg, msg->dest);
 
-    std::cout << "dispatching request to replicas, tid: " << breq->txn_id << " client node id: "<< client_node_id << std::endl;
+    std::cout << "dispatching request to replicas, tid: " << msg->txn_id << " client node id: "<< client_node_id << std::endl;
     fflush(stdout);
     return RCOK;
 }
 
 RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
 {
+    std::cout << "dispatching batch requests to replicas from recv proxy from the deadline obj" << std::endl;
     uint64_t client_node_id = deadline_pq_obj->get_client_node_id();
     auto cqrySet = deadline_pq_obj->get_cqrySet();
 
+    std::cout << "Dispatching: got the cqryset and the client node id: " << client_node_id << std::endl;
+
     // create a batch request message
     Message *msg = Message::create_message(BATCH_REQ);
+    ((BatchRequests *)msg)->index.init(get_batch_size());
+
 
     // push back all the destinations 
     for (uint64_t i = 0; i < g_node_cnt; i++) {
         msg->dest.push_back(i);
     }
+
+    std::cout << "Dispatching: pushed the destinations" << std::endl;
 
     // assign the recv_proxy speculative txn id and batch id
     recv_proxy_txn_assignment_mtx.lock();
@@ -266,15 +285,21 @@ RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
 
     recv_proxy_txn_assignment_mtx.unlock();
 
+    std::cout << "Dispatching: assigned the txn id: "<< msg->txn_id <<" and batch id: " << msg->batch_id << std::endl;
+
     // add the queries to the message
-    for (auto i = 0; i < cqrySet.size(); i++) {
+    for (size_t i = 0; i < cqrySet.size(); i++) {
         char *brf = (char *)malloc(cqrySet[i]->get_size());
         cqrySet[i]->copy_to_buf(brf);
         Message *tmsg = Message::create_message(brf);
         YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
         free(brf);
-        ((BatchRequests *)msg)->cqrySet.push_back(yqry);
+        ((BatchRequests *)msg)->requestMsg.push_back(yqry);
+        ((BatchRequests *)msg)->index.add(msg->txn_id+i);
+
     } 
+
+    std::cout << "Dispatching: added the queries to the message" << std::endl;
 
     // fill the return node: the client to get back to, who will be doing the linearization and the vote check
     msg->return_node_id = client_node_id;
@@ -282,7 +307,7 @@ RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
     // send it out to all the replicas
     msg_queue.enqueue(get_thd_id(), msg, msg->dest);
 
-    std::cout << "dispatching request to replicas, tid: " << breq->txn_id << " client node id: "<< client_node_id << std::endl;
+    std::cout << "dispatching request to replicas, tid: " << msg->txn_id << " client node id: "<< client_node_id << std::endl;
     fflush(stdout);
     return RCOK;
 }
@@ -321,7 +346,7 @@ void WorkerThread::add_deadline_and_send_batchreq(ClientQueryBatch *msg, uint64_
 
     breq->deadline = deadline_orcale.make_deadline_prediction();
 
-    printf("Done adding deadline\n");
+    printf("Done adding deadline, added deadline: %ld, current systime: %ld, difference: %ld\n", breq->deadline, get_sys_clock(), breq->deadline - get_sys_clock());
 	fflush(stdout);
 
     // peter: copy the cqry set to the deadline batch requests

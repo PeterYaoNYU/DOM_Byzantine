@@ -71,6 +71,7 @@ void MessageQueue::enqueue(uint64_t thd_id, Message *msg, const vector<uint64_t>
     case BATCH_REQ:
         for (uint64_t i = 0; i < dest.size(); i++)
         {
+            DEBUG("Batch requests signing for destination %ld\n", dest[i]);
             ((BatchRequests *)msg)->sign(dest[i]);
             entry->allsign.push_back(msg->signature);
         }

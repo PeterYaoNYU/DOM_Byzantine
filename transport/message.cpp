@@ -1512,7 +1512,9 @@ string BatchRequests::getString(uint64_t sender)
 void BatchRequests::sign(uint64_t dest_node)
 {
 #if USE_CRYPTO
+	DEBUG("Long brfore Begin Signing Batch Requests for one destination, getting the string first\n");
 	string message = getString(g_node_id);
+	DEBUG("Begin Signing Batch Requests for one destination\n");
 
 	signingNodeNode(message, this->signature, this->pubKey, dest_node);
 #else
@@ -1520,6 +1522,7 @@ void BatchRequests::sign(uint64_t dest_node)
 #endif
 	this->sigSize = this->signature.size();
 	this->keySize = this->pubKey.size();
+	DEBUG("Done Signing Batch Requests for one destination\n");
 }
 
 //makes sure message is valid, returns true for false

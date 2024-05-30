@@ -8,6 +8,7 @@
 #include "pool.h"
 #include "global.h"
 #include "crypto.h"
+#include "helper.h"
 
 void MessageThread::init(uint64_t thd_id)
 {
@@ -41,7 +42,7 @@ void MessageThread::send_batch(uint64_t dest_node_id)
     assert(sbuf->cnt > 0);
     ((uint32_t *)sbuf->buffer)[2] = sbuf->cnt;
 
-    DEBUG("Send batch of %ld msgs to %ld\n", sbuf->cnt, dest_node_id);
+    DEBUG("Send batch of %ld msgs to %ld, system_time: %ld\n", sbuf->cnt, dest_node_id, get_sys_clock());
     tport_man.send_msg(_thd_id, dest_node_id, sbuf->buffer, sbuf->ptr);
     sbuf->reset(dest_node_id);
 }
