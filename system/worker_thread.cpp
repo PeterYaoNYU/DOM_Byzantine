@@ -179,7 +179,10 @@ RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
     auto deadline = breq->deadline;
     auto cqrySet = breq->cqrySet;
 
-    std::cout << "Recv Proxy received a batch with deadline: " << deadline << std::endl;
+    auto txn_idx = breq->txn_id;
+    auto batch_id = breq->batch_id;
+
+    std::cout << "Recv Proxy received a batch with deadline: " << deadline <<" txn_id: "<< txn_idx << " Batch id: " << batch_id << std::endl;
 
     // peter: construct the object and push it to the priority queue
     auto currentTime = get_sys_clock();
@@ -195,6 +198,8 @@ RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
     return RCOK;
 }
 
+// peter: this function dispatches a request that has passed the deadline
+// from the recv proxy to all the replicas. 
 RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
 {
     uint64_t client_node_id = breq->return_node_id;
@@ -202,9 +207,80 @@ RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
 
     // create a batch request message
     Message *msg = Message::create_message(BATCH_REQ);
+
+    // push back all the destinations 
     for (uint64_t i = 0; i < g_node_cnt; i++) {
         msg->dest.push_back(i);
     }
+
+    // assign the recv_proxy speculative txn id and batch id
+    recv_proxy_txn_assignment_mtx.lock();
+
+    msg->batch_id = ++next_set; 
+    msg->txn_id = get_next_txn_id();
+
+    recv_proxy_txn_assignment_mtx.unlock();
+
+    // add the queries to the message
+    for (auto i = 0; i < cqrySet.size(); i++) {
+        char *brf = (char *)malloc(cqrySet[i]->get_size());
+        cqrySet[i]->copy_to_buf(brf);
+        Message *tmsg = Message::create_message(brf);
+        YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
+        free(brf);
+        ((BatchRequests *)msg)->cqrySet.push_back(yqry);
+    } 
+
+    // fill the return node: the client to get back to, who will be doing the linearization and the vote check
+    msg->return_node_id = client_node_id;
+
+    // TODO: the hash part of the batch requests is left unimplemented
+    // TODO: I honestly do not think that the batch size needs to be filled in
+
+    // send the message to the replicas
+    msg_queue.enqueue(get_thd_id(), msg, msg->dest);
+
+    std::cout << "dispatching request to replicas, tid: " << breq->txn_id << " client node id: "<< client_node_id << std::endl;
+    fflush(stdout);
+    return RCOK;
+}
+
+RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
+{
+    uint64_t client_node_id = deadline_pq_obj->get_client_node_id();
+    auto cqrySet = deadline_pq_obj->get_cqrySet();
+
+    // create a batch request message
+    Message *msg = Message::create_message(BATCH_REQ);
+
+    // push back all the destinations 
+    for (uint64_t i = 0; i < g_node_cnt; i++) {
+        msg->dest.push_back(i);
+    }
+
+    // assign the recv_proxy speculative txn id and batch id
+    recv_proxy_txn_assignment_mtx.lock();
+
+    msg->batch_id = ++next_set; 
+    msg->txn_id = get_next_txn_id();
+
+    recv_proxy_txn_assignment_mtx.unlock();
+
+    // add the queries to the message
+    for (auto i = 0; i < cqrySet.size(); i++) {
+        char *brf = (char *)malloc(cqrySet[i]->get_size());
+        cqrySet[i]->copy_to_buf(brf);
+        Message *tmsg = Message::create_message(brf);
+        YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
+        free(brf);
+        ((BatchRequests *)msg)->cqrySet.push_back(yqry);
+    } 
+
+    // fill the return node: the client to get back to, who will be doing the linearization and the vote check
+    msg->return_node_id = client_node_id;
+
+    // send it out to all the replicas
+    msg_queue.enqueue(get_thd_id(), msg, msg->dest);
 
     std::cout << "dispatching request to replicas, tid: " << breq->txn_id << " client node id: "<< client_node_id << std::endl;
     fflush(stdout);
@@ -944,9 +1020,10 @@ RC WorkerThread::check_deadline_pq_and_send_out_due_batches()
     deadline_pq.tryPeek(top_batch);
 
     // 2. if the deadline has passed, send the batch to the replica
-    if (top_batch.get_deadline() > get_sys_clock()) {
+    while (top_batch.get_deadline() > get_sys_clock()) {
         deadline_pq.tryPop(top_batch);
-        // dispatch_request_to_replicas(top_batch.get_cqrySet());
+        dispatch_request_to_replicas(&top_batch);
+        deadline_pq.tryPeek(top_batch);
     }
     return RCOK;
 }

@@ -44,6 +44,7 @@ public:
     RC process_pbft_chkpt_msg(Message *msg);
 
     RC dispatch_request_to_replicas(BatchDeadlineRequests *breq);
+    RC dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj);
     RC check_deadline_pq_and_send_out_due_batches();
 #if BANKING_SMART_CONTRACT
     void init_txn_man(BankingSmartContractMessage *bscm);

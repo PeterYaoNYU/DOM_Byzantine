@@ -88,6 +88,9 @@ extern DeadlineOracle deadline_orcale;
 // extern std::priority_queue<DeadlinePQObj, std::vector<DeadlinePQObj>, CompareDeadlinePQObj> deadline_pq;
 extern ThreadSafePriorityQueue deadline_pq;
 
+// peter: ensures that when assigning txn and batch id and next_set, there will not be contention
+extern std::mutex recv_proxy_txn_assignment_mtx;
+
 /******************************************/
 // Global Data Structure
 /******************************************/

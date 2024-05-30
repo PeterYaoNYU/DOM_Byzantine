@@ -37,6 +37,9 @@ ThreadSafePriorityQueue deadline_pq;
 MessageQueue msg_queue;
 Client_txn client_man;
 
+// DOM related variables
+std::mutex recv_proxy_txn_assignment_mtx;
+
 bool volatile warmup_done = false;
 bool volatile enable_thread_mem_pool = false;
 pthread_barrier_t warmup_bar;

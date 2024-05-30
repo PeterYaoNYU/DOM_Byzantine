@@ -40,6 +40,7 @@ void TxnManPool::get(uint64_t txn_id, TxnManager *&item)
     bool r = pool[pool_id]->pop(item);
     if (!r)
     {
+        // peter: allocate new txn manager, if unavailable
         _wl->get_txn_man(item);
     }
     item->init(pool_id, _wl);

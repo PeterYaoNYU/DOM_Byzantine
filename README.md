@@ -12,13 +12,14 @@
 - [x] Update the docker-ifconfig.sh configuration to handle the docker network setup, IP address generation
 - [ ] priority queue at the recv_proxy
 - [ ] send the msg to the replica when the time has come
+- [ ] when dispatching requests from the recv proxies to the replicas, the hash of the batch needs to be taken care of, which is left unhandled for now. 
 
 ## Long term TODO
 
 - [ ] Think about the view change subprotocol
 - [ ] Optimization at the proxy: Zero copy of the network stack for performance optimization
 - [ ] Recv Proxy can have multiple priority queues for each worker threads to alleviate lock contentions. But I do need to think about how to assign it. Maybe based on the send proxies, which is unfortunate first because right now I only have one send proxy, and secondly, this may lead to load imbalance 
-- [ ] 
+- [ ] it seems that the YCSB Workloads only tested the read from in memory databses: not so much for writing 
 
 
 ## Notes and Questions Peter(DOM_BFT implementation):
