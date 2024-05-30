@@ -136,6 +136,12 @@ void MessageThread::run()
 
         if (sbuf->starttime == 0)
             sbuf->starttime = get_sys_clock();
+        
+        if (msg->rtype == BATCH_DEADLINE_REQ)
+        {
+            BatchDeadlineRequests *breq = (BatchDeadlineRequests *)msg;
+            DEBUG("Send batch deadline requests with deadline: %ld to %ld, system_time: %ld, difference till deadline: %ld\n", breq->deadline, dest_node_id, get_sys_clock(), get_sys_clock() - breq->deadline);
+        }
 
         check_and_send_batches();
     }
