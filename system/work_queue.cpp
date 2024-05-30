@@ -51,6 +51,7 @@ void QWorkQueue::enqueue(uint64_t thd_id, Message *msg, bool busy)
     }
     else if (msg->rtype == BATCH_REQ)
     {
+#if !DOM
         // The Primary should not receive pre-prepare message
         if (g_node_id == view_to_primary(get_current_view(thd_id)))
         {
@@ -60,6 +61,10 @@ void QWorkQueue::enqueue(uint64_t thd_id, Message *msg, bool busy)
         {
             push_to_queue(entry, work_queue);
         }
+#else
+        push_to_queue(entry, work_queue);
+#endif  // !DOM
+
     }
     else if (msg->rtype == EXECUTE_MSG)
     {

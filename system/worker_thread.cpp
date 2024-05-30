@@ -201,8 +201,11 @@ RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
 
 // peter: this function dispatches a request that has passed the deadline
 // from the recv proxy to all the replicas. 
+// note: this function has not been heavily tested, because of the setup of the experiment in the docker
 RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
 {
+    // for calculating hash
+    string batchStr;
     std::cout << "dispatching batch requests to replicas from recv proxy from the batch requests " << std::endl;
     uint64_t client_node_id = breq->return_node_id;
     auto cqrySet = breq->cqrySet;
@@ -232,6 +235,7 @@ RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
     for (size_t i = 0; i < cqrySet.size(); i++) {
         char *brf = (char *)malloc(cqrySet[i]->get_size());
         cqrySet[i]->copy_to_buf(brf);
+        batchStr += cqrySet[i]->getString();
         Message *tmsg = Message::create_message(brf);
         YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
         free(brf);
@@ -243,6 +247,8 @@ RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
 
     // fill the return node: the client to get back to, who will be doing the linearization and the vote check
     msg->return_node_id = client_node_id;
+    ((BatchRequests *)msg)->hash = calculateHash(batchStr);
+    ((BatchRequests *)msg)->hashSize = ((BatchRequests *)msg)->hash.length();
 
     // TODO: the hash part of the batch requests is left unimplemented
     // TODO: I honestly do not think that the batch size needs to be filled in
@@ -255,8 +261,12 @@ RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
     return RCOK;
 }
 
+// peter: send the hell of a messages out to all the replicas
 RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
 {
+
+    // for calculating hash
+    string batchStr;
     std::cout << "dispatching batch requests to replicas from recv proxy from the deadline obj" << std::endl;
     uint64_t client_node_id = deadline_pq_obj->get_client_node_id();
     auto cqrySet = deadline_pq_obj->get_cqrySet();
@@ -296,6 +306,9 @@ RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
     for (uint64_t i = 0; i < cqrySet.size(); i++) {
         YCSBClientQueryMessage *yqry_to_copy = (YCSBClientQueryMessage *)cqrySet[i];
 
+        // append string representation of this txn
+        batchStr += yqry_to_copy->getString();
+
         if (yqry_to_copy == nullptr) {
             std::cerr << "Error: yqry_to_copy is null!" << std::endl;
             continue; // or handle the error appropriately
@@ -306,6 +319,9 @@ RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
         YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
 
         free(brf);
+
+        breq->hash = calculateHash(batchStr);
+        breq->hashSize = breq->hash.length();
         breq->requestMsg[i]= yqry;
         breq->index.add(msg->txn_id+i);
     } 

@@ -72,6 +72,7 @@ RC WorkerThread::process_client_batch(Message *msg)
  */
 RC WorkerThread::process_batch(Message *msg)
 {
+    DEBUG("received a batch request\n");
     uint64_t cntime = get_sys_clock();
 
     BatchRequests *breq = (BatchRequests *)msg;
