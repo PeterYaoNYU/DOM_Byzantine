@@ -10,9 +10,9 @@
 - [x] Update the resilientDB-docker script to handle the new proxies
 - [x] Update the makefile rules to provide compile rules for the proxies (similar to the rundb and runcl rules)
 - [x] Update the docker-ifconfig.sh configuration to handle the docker network setup, IP address generation
-- [ ] priority queue at the recv_proxy
-- [ ] send the msg to the replica when the time has come
-- [ ] when dispatching requests from the recv proxies to the replicas, the hash of the batch needs to be taken care of, which is left unhandled for now.
+- [x] priority queue at the recv_proxy
+- [x] send the msg to the replica when the time has come
+- [x] when dispatching requests from the recv proxies to the replicas, the hash of the batch needs to be taken care of, which is left unhandled for now.
 - [ ] Should have started a separate thread just spinning around to handle the overdue messages to reduce latency. 
 
 ## Long term TODO
