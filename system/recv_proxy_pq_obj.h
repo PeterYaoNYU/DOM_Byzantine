@@ -6,8 +6,7 @@
 class DeadlinePQObj
 {
 public:
-    DeadlinePQObj(uint64_t deadline, std::vector<YCSBClientQueryMessage *>& cqrySet, uint64_t client_node_id): 
-    deadline(deadline), cqrySet(cqrySet), client_node_id(client_node_id) {}
+    DeadlinePQObj(uint64_t deadline, std::vector<YCSBClientQueryMessage *>& cqrySet, uint64_t client_node_id);
 
     DeadlinePQObj() : deadline(0), cqrySet(), client_node_id(0) {}
 

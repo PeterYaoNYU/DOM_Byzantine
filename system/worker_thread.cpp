@@ -187,7 +187,8 @@ RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
     // peter: construct the object and push it to the priority queue
     auto currentTime = get_sys_clock();
 
-    if (deadline > currentTime) {
+    if (deadline < currentTime) {
+        DEBUG("Deadline has passed, dispatching the request to the replicas immediately, the deadline is: %ld, current time is: %ld\n", deadline, currentTime);
         dispatch_request_to_replicas(breq);
     }
     
@@ -203,57 +204,57 @@ RC WorkerThread::process_batch_deadline_req_in_recv_proxy(Message *msg)
 RC WorkerThread::dispatch_request_to_replicas(BatchDeadlineRequests *breq)
 {
     std::cout << "dispatching batch requests to replicas from recv proxy from the batch requests " << std::endl;
-    uint64_t client_node_id = breq->return_node_id;
-    auto cqrySet = breq->cqrySet;
+    // uint64_t client_node_id = breq->return_node_id;
+    // auto cqrySet = breq->cqrySet;
 
-    std::cout << "Dispatching: got the cqryset and the client node id: " << client_node_id << std::endl;
+    // std::cout << "Dispatching: got the cqryset and the client node id: " << client_node_id << std::endl;
 
-    // create a batch request message
-    Message *msg = Message::create_message(BATCH_REQ);
-    ((BatchRequests *)msg)->index.init(get_batch_size());
+    // // create a batch request message
+    // Message *msg = Message::create_message(BATCH_REQ);
+    // ((BatchRequests *)msg)->index.init(get_batch_size());
 
-    // push back all the destinations 
-    for (uint64_t i = 0; i < g_node_cnt; i++) {
-        msg->dest.push_back(i);
-    }
-    std::cout << "Dispatching: pushed the destinations" << std::endl;
+    // // push back all the destinations 
+    // for (uint64_t i = 0; i < g_node_cnt; i++) {
+    //     msg->dest.push_back(i);
+    // }
+    // std::cout << "Dispatching: pushed the destinations" << std::endl;
 
-    // assign the recv_proxy speculative txn id and batch id
-    recv_proxy_txn_assignment_mtx.lock();
+    // // assign the recv_proxy speculative txn id and batch id
+    // recv_proxy_txn_assignment_mtx.lock();
 
-    msg->batch_id = ++next_set; 
-    msg->txn_id = get_next_txn_id();
+    // msg->batch_id = ++next_set; 
+    // msg->txn_id = get_next_txn_id();
 
-    recv_proxy_txn_assignment_mtx.unlock();
+    // recv_proxy_txn_assignment_mtx.unlock();
 
-    std::cout << "Dispatching: assigned the txn id: "<< msg->txn_id <<" and batch id: " << msg->batch_id << std::endl;
+    // std::cout << "Dispatching: assigned the txn id: "<< msg->txn_id <<" and batch id: " << msg->batch_id << std::endl;
 
-    // add the queries to the message
-    for (size_t i = 0; i < cqrySet.size(); i++) {
-        char *brf = (char *)malloc(cqrySet[i]->get_size());
-        cqrySet[i]->copy_to_buf(brf);
-        Message *tmsg = Message::create_message(brf);
-        YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
-        free(brf);
-        ((BatchRequests *)msg)->requestMsg.push_back(yqry);
+    // // add the queries to the message
+    // for (size_t i = 0; i < cqrySet.size(); i++) {
+    //     char *brf = (char *)malloc(cqrySet[i]->get_size());
+    //     cqrySet[i]->copy_to_buf(brf);
+    //     Message *tmsg = Message::create_message(brf);
+    //     YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
+    //     free(brf);
+    //     ((BatchRequests *)msg)->requestMsg.push_back(yqry);
 
-        ((BatchRequests *)msg)->index.add(msg->txn_id+i);
-    } 
+    //     ((BatchRequests *)msg)->index.add(msg->txn_id+i);
+    // } 
 
-    std::cout << "Dispatching: added the queries to the message" << std::endl;
+    // std::cout << "Dispatching: added the queries to the message" << std::endl;
 
-    // fill the return node: the client to get back to, who will be doing the linearization and the vote check
-    msg->return_node_id = client_node_id;
-    std::cout << "Dispatching: assigning return node id complete" << std::endl;
+    // // fill the return node: the client to get back to, who will be doing the linearization and the vote check
+    // msg->return_node_id = client_node_id;
+    // std::cout << "Dispatching: assigning return node id complete" << std::endl;
 
-    // TODO: the hash part of the batch requests is left unimplemented
-    // TODO: I honestly do not think that the batch size needs to be filled in
+    // // TODO: the hash part of the batch requests is left unimplemented
+    // // TODO: I honestly do not think that the batch size needs to be filled in
 
-    // send the message to the replicas
-    msg_queue.enqueue(get_thd_id(), msg, msg->dest);
+    // // send the message to the replicas
+    // msg_queue.enqueue(get_thd_id(), msg, msg->dest);
 
-    std::cout << "dispatching request to replicas, tid: " << msg->txn_id << " client node id: "<< client_node_id << std::endl;
-    fflush(stdout);
+    // std::cout << "dispatching request to replicas, tid: " << msg->txn_id << " client node id: "<< client_node_id << std::endl;
+    // fflush(stdout);
     return RCOK;
 }
 
@@ -262,17 +263,26 @@ RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
     std::cout << "dispatching batch requests to replicas from recv proxy from the deadline obj" << std::endl;
     uint64_t client_node_id = deadline_pq_obj->get_client_node_id();
     auto cqrySet = deadline_pq_obj->get_cqrySet();
+    DEBUG("THE CQRYSet size is %ld\n", cqrySet.size());
 
     std::cout << "Dispatching: got the cqryset and the client node id: " << client_node_id << std::endl;
 
     // create a batch request message
     Message *msg = Message::create_message(BATCH_REQ);
-    ((BatchRequests *)msg)->index.init(get_batch_size());
+    BatchRequests *breq = (BatchRequests *)msg;
+    breq->init(get_thd_id());
+    breq->index.init(get_batch_size());
 
+    printf("Done init the batch request in recv proxy\n");
 
+    vector<uint64_t> dest;
     // push back all the destinations 
     for (uint64_t i = 0; i < g_node_cnt; i++) {
-        msg->dest.push_back(i);
+       if (i == g_node_id) {
+            continue;
+        }
+        std::cout << "adding destination: " << i << std::endl;
+        dest.push_back(i);
     }
 
     std::cout << "Dispatching: pushed the destinations" << std::endl;
@@ -288,15 +298,31 @@ RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
     std::cout << "Dispatching: assigned the txn id: "<< msg->txn_id <<" and batch id: " << msg->batch_id << std::endl;
 
     // add the queries to the message
-    for (size_t i = 0; i < cqrySet.size(); i++) {
-        char *brf = (char *)malloc(cqrySet[i]->get_size());
-        cqrySet[i]->copy_to_buf(brf);
-        Message *tmsg = Message::create_message(brf);
-        YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
-        free(brf);
-        ((BatchRequests *)msg)->requestMsg.push_back(yqry);
-        ((BatchRequests *)msg)->index.add(msg->txn_id+i);
+    DEBUG("CQRYSet Size: %ld\n", cqrySet.size());
+    for (uint64_t i = 0; i < cqrySet.size(); i++) {
+        DEBUG("Moving CQRYSET\n");
+        std::cout << "Nothign wrong so far" <<std::endl;
+        // DEBUG("Size of the cqrySet element is %ld\n", cqrySet[i]->get_size());
+        YCSBClientQueryMessage *yqry_to_copy = (YCSBClientQueryMessage *)cqrySet[i];
 
+        if (yqry_to_copy == nullptr) {
+            std::cerr << "Error: yqry_to_copy is null!" << std::endl;
+            continue; // or handle the error appropriately
+        }
+        char *brf = (char *)malloc(yqry_to_copy->get_size());
+        DEBUG("Malloc succ\n");
+        cqrySet[i]->copy_to_buf(brf);
+        DEBUG("Copy to buf succ\n");
+        Message *tmsg = Message::create_message(brf);
+        DEBUG("Create message succ\n");
+        YCSBClientQueryMessage *yqry = (YCSBClientQueryMessage *)tmsg;
+
+        free(brf);
+        DEBUG("Free succ\n");
+        breq->requestMsg[i]= yqry;
+        DEBUG("Push back succ\n");
+        breq->index.add(msg->txn_id+i);
+        DEBUG("Index add succ\n");
     } 
 
     std::cout << "Dispatching: added the queries to the message" << std::endl;
@@ -305,7 +331,8 @@ RC WorkerThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
     msg->return_node_id = client_node_id;
 
     // send it out to all the replicas
-    msg_queue.enqueue(get_thd_id(), msg, msg->dest);
+    msg_queue.enqueue(get_thd_id(), breq, dest);
+    dest.clear();
 
     std::cout << "dispatching request to replicas, tid: " << msg->txn_id << " client node id: "<< client_node_id << std::endl;
     fflush(stdout);
@@ -1039,16 +1066,21 @@ void WorkerThread::init_txn_man(YCSBClientQueryMessage *clqry)
 RC WorkerThread::check_deadline_pq_and_send_out_due_batches()
 {
     // TO-BE implememted
+    bool succ;
 
     // 1. check if the deadline of the top element of the priority queue has passed
     DeadlinePQObj top_batch;
-    deadline_pq.tryPeek(top_batch);
+    succ = deadline_pq.tryPeek(top_batch);
 
     // 2. if the deadline has passed, send the batch to the replica
-    while (top_batch.get_deadline() > get_sys_clock()) {
-        deadline_pq.tryPop(top_batch);
+    while (succ && top_batch.get_deadline() < get_sys_clock()) {
+        succ = deadline_pq.tryPop(top_batch);
+        if (!succ) {
+            break;
+        }
+        DEBUG("Pop from priority queue with deadline: %ld, current sys clock: %ld, difference: %ld\n", top_batch.get_deadline(), get_sys_clock(), get_sys_clock() - top_batch.get_deadline());
         dispatch_request_to_replicas(&top_batch);
-        deadline_pq.tryPeek(top_batch);
+        succ = deadline_pq.tryPeek(top_batch);
     }
     return RCOK;
 }
