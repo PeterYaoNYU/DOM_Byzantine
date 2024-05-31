@@ -57,6 +57,122 @@ RC WorkerThread::process_client_batch(Message *msg)
     return RCOK;
 }
 
+#if DOM
+/**
+ * peter: this version of the batch requests handling function is for the DOM version
+ * 
+ * Process incoming BatchRequests message from the Primary.
+ *
+ * This function is used by the non-primary or backup replicas to process an incoming
+ * BatchRequests message sent by the primary replica. This processing would require
+ * sending messages of type PBFTPrepMessage, which correspond to the Prepare phase of
+ * the PBFT protocol. Due to network delays, it is possible that a repica may have
+ * received some messages of type PBFTPrepMessage and PBFTCommitMessage, prior to
+ * receiving this BatchRequests message.
+ *
+ * @param msg Batch of Transactions of type BatchRequests from the primary.
+ * @return RC
+ */
+RC WorkerThread::process_batch(Message *msg)
+{
+    DEBUG("received a batch request in DOM\n");
+
+    uint64_t cntime = get_sys_clock();
+
+    BatchRequests *breq = (BatchRequests *)msg;
+    DEBUG("BatchRequests: TID:%ld : VIEW: %ld : THD: %ld\n",breq->txn_id, breq->view, get_thd_id());
+
+    // Check if the message is valid.
+    validate_msg(breq);
+
+#if VIEW_CHANGES
+    // Store the batch as it could be needed during view changes.
+    store_batch_msg(breq);
+#endif
+
+    // Allocate transaction managers for all the transactions in the batch.
+    set_txn_man_fields(breq, 0);
+    DEBUG("Done Allocating transaction managers for all the transactions in the batch.\n");
+
+// #if TIMER_ON
+//     // The timer for this client batch stores the hash of last request.
+//     add_timer(breq, txn_man->get_hash());
+// #endif
+
+    // Storing the BatchRequests message.
+    txn_man->set_primarybatch(breq);
+
+    // peter: speculatively commit
+    txn_man->set_committed();
+    send_execute_msg();
+
+    // End the counter for pre-prepare phase as prepare phase starts next.
+    double timepre = get_sys_clock() - cntime;
+    INC_STATS(get_thd_id(), time_pre_prepare, timepre);
+
+//     // If enough Prepare messages have already arrived.
+//     if (txn_man->is_prepared())
+//     {
+//         // Send Commit messages.
+//         txn_man->send_pbft_commit_msgs();
+
+//         double timeprep = get_sys_clock() - txn_man->txn_stats.time_start_prepare - timepre;
+//         INC_STATS(get_thd_id(), time_prepare, timeprep);
+//         double timediff = get_sys_clock() - cntime;
+
+//         // Check if any Commit messages arrived before this BatchRequests message.
+//         for (uint64_t i = 0; i < txn_man->info_commit.size(); i++)
+//         {
+//             uint64_t num_comm = txn_man->decr_commit_rsp_cnt();
+//             if (num_comm == 0)
+//             {
+//                 txn_man->set_committed();
+//                 break;
+//             }
+//         }
+
+//         // If enough Commit messages have already arrived.
+//         if (txn_man->is_committed())
+//         {
+// #if TIMER_ON
+//             // End the timer for this client batch.
+//             remove_timer(txn_man->hash);
+// #endif
+//             // Proceed to executing this batch of transactions.
+//             send_execute_msg();
+
+//             // End the commit counter.
+//             INC_STATS(get_thd_id(), time_commit, get_sys_clock() - txn_man->txn_stats.time_start_commit - timediff);
+//         }
+//     }
+//     else
+//     {
+//         // Although batch has not prepared, still some commit messages could have arrived.
+//         for (uint64_t i = 0; i < txn_man->info_commit.size(); i++)
+//         {
+//             txn_man->decr_commit_rsp_cnt();
+//         }
+//     }
+
+    // Release this txn_man for other threads to use.
+    bool ready = txn_man->set_ready();
+    assert(ready);
+
+    // UnSetting the ready for the txn id representing this batch.
+    txn_man = get_transaction_manager(msg->txn_id, 0);
+    unset_ready_txn(txn_man);
+
+#if LOCAL_FAULT
+    // Fail some node.
+
+    fail_nonprimary();
+#endif
+
+    return RCOK;
+}
+
+#else // DOM
+
 /**
  * Process incoming BatchRequests message from the Primary.
  *
@@ -103,6 +219,7 @@ RC WorkerThread::process_batch(Message *msg)
 
     // Allocate transaction managers for all the transactions in the batch.
     set_txn_man_fields(breq, 0);
+    DEBUG("Done Allocating transaction managers for all the transactions in the batch.\n");
 
 #if TIMER_ON
     // The timer for this client batch stores the hash of last request.
@@ -198,6 +315,7 @@ RC WorkerThread::process_batch(Message *msg)
 
     return RCOK;
 }
+#endif // if DOM
 
 /**
  * Processes incoming Prepare message.
