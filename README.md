@@ -16,6 +16,7 @@
 - [ ] Should have started a separate thread just spinning around to handle the overdue messages to reduce latency. 
 - [ ] The deadline prediction oracle is taking way too much more time than it really should, about 5 millisecond (I assume that the syscall to get the current time is expensive, which involves a context switch)
 - [ ] If the performance is still not good enough, consider using a lock free or highly concurrent priority queue from a certain external library 
+- [ ] the next set vairable should definitely be made gobal among all threads (a neglection on me) Probably it should be given another name to avoid confusion, like g_next_set to indicate that it is global. 
 
 ## Long term TODO
 

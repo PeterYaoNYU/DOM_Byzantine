@@ -95,24 +95,50 @@ void WorkerThread::setup()
     batchMTX.unlock();
     fflush(stdout);
 
-    if (get_thd_id() == 0)
+    if (g_node_id >= g_node_cnt + g_client_node_cnt + g_send_proxy_cnt)
     {
-        while (commonVar < g_thread_cnt + g_rem_thread_cnt + g_send_thread_cnt)
-            ;
+        if (get_thd_id() == 0)
+        {
+            DEBUG("waiting for %d threads to join\n",g_thread_cnt + g_rem_thread_cnt + g_send_thread_cnt + g_check_pq_thd_cnt);
+            while (commonVar < g_thread_cnt + g_rem_thread_cnt + g_send_thread_cnt + g_check_pq_thd_cnt)
+                ;
 
-        send_init_done_to_all_nodes();
-        printf("Sent init done to all\n");
-        fflush(stdout);
-        send_key();
-    } else {
-        fflush(stdout);
+            send_init_done_to_all_nodes();
+            printf("Sent init done to all\n");
+            fflush(stdout);
+            send_key();
+            DEBUG("return from worker thread id 0\n");
+        } else {
+            fflush(stdout);
+        }
+        _thd_txn_id = 0;
+        return;
     }
-    _thd_txn_id = 0;
+    else 
+    {
+        if (get_thd_id() == 0)
+        {
+            DEBUG("waiting for %d threads to join\n",g_thread_cnt + g_rem_thread_cnt + g_send_thread_cnt );
+            while (commonVar < g_thread_cnt + g_rem_thread_cnt + g_send_thread_cnt)
+                ;
+
+            send_init_done_to_all_nodes();
+            printf("Sent init done to all\n");
+            fflush(stdout);
+            send_key();
+        } else {
+            fflush(stdout);
+        }
+        _thd_txn_id = 0;
+    }
+
 }
 
 void WorkerThread::process(Message *msg)
 {
     RC rc __attribute__((unused));
+
+    DEBUG("Processing message at the worker thread\n");
 
     switch (msg->get_rtype())
     {
@@ -127,6 +153,7 @@ void WorkerThread::process(Message *msg)
 #endif
         break;
     case BATCH_DEADLINE_REQ:
+        DEBUG("Recv Proxy receivesd deadline requests\n");
         rc = process_batch_deadline_req_in_recv_proxy(msg);
         break;
     case BATCH_REQ:

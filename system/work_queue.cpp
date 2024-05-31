@@ -34,7 +34,7 @@ void QWorkQueue::enqueue(uint64_t thd_id, Message *msg, bool busy)
 {
     uint64_t starttime = get_sys_clock();
     assert(msg);
-    DEBUG_M("QWorkQueue::enqueue work_queue_entry alloc\n");
+    DEBUG("QWorkQueue::enqueue work_queue_entry alloc\n");
     work_queue_entry *entry = (work_queue_entry *)mem_allocator.align_alloc(sizeof(work_queue_entry));
     entry->msg = msg;
     entry->rtype = msg->rtype;

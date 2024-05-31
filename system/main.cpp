@@ -16,6 +16,7 @@
 #include "timer.h"
 #include "chain.h"
 #include "smart_contract_txn.h"
+#include "check_thread.h"
 
 void network_test();
 void network_test_recv();
@@ -255,6 +256,11 @@ int main(int argc, char *argv[])
 
     assert(all_thd_cnt == g_this_total_thread_cnt);
 
+    if (g_node_id >= g_node_cnt + g_client_node_cnt + g_send_proxy_cnt)
+    {
+        all_thd_cnt += g_check_pq_thd_cnt;
+    }
+
     pthread_t *p_thds =
         (pthread_t *)malloc(sizeof(pthread_t) * (all_thd_cnt));
     pthread_attr_t attr;
@@ -263,7 +269,7 @@ int main(int argc, char *argv[])
     worker_thds = new WorkerThread[wthd_cnt];
     input_thds = new InputThread[rthd_cnt];
     output_thds = new OutputThread[sthd_cnt];
-    check_thds = 
+    check_thds = new CheckThread[cthd_cnt];
 
     endtime = get_server_clock();
     printf("Initialization Time = %ld\n", endtime - starttime);
@@ -306,6 +312,15 @@ int main(int argc, char *argv[])
         pthread_create(&p_thds[id++], &attr, run_thread, (void *)&output_thds[j]);
         pthread_setname_np(p_thds[id - 1], "s_sender");
     }
+
+    for (uint64_t j = 0; j < cthd_cnt; j++)
+    {
+        assert(id >= wthd_cnt + rthd_cnt + sthd_cnt && id < wthd_cnt + rthd_cnt + sthd_cnt + cthd_cnt);
+        check_thds[j].init(id, g_node_id, m_wl);
+        pthread_create(&p_thds[id++], &attr, run_thread, (void *)&check_thds[j]);
+        pthread_setname_np(p_thds[id - 1], "s_check");
+    }
+
 #if LOGGING
     log_thds[0].init(id, g_node_id, m_wl);
     pthread_create(&p_thds[id++], &attr, run_thread, (void *)&log_thds[0]);

@@ -94,6 +94,9 @@ extern std::mutex recv_proxy_txn_assignment_mtx;
 // peter: the number of threads that check how many deadlines have passed
 extern UInt32 g_check_pq_thd_cnt;
 
+// [peter] for the recv proxy to assing batch id, shared among threads. 
+extern uint64_t g_next_set;
+
 /******************************************/
 // Global Data Structure
 /******************************************/

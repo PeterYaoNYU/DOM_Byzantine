@@ -41,6 +41,8 @@ Client_txn client_man;
 std::mutex recv_proxy_txn_assignment_mtx;
 UInt32 g_check_pq_thd_cnt = 3;
 
+uint64_t g_next_set;
+
 bool volatile warmup_done = false;
 bool volatile enable_thread_mem_pool = false;
 pthread_barrier_t warmup_bar;

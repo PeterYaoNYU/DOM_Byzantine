@@ -52,7 +52,9 @@ void Thread::tsetup()
     fflush(stdout);
     pthread_barrier_wait(&warmup_bar);
     std::cout << "passed second warmup barrier in tsetup(), thread_id:  " << _thd_id << std::endl;
-
+    if (_thd_id == 0) {
+        DEBUG("Thread 0 is back from setup, passed second barrier\n");
+    }
 
 #if TIME_ENABLE
     run_starttime = get_sys_clock();
@@ -64,6 +66,10 @@ void Thread::tsetup()
     heartbeat_time = run_starttime;
     pthread_barrier_wait(&warmup_bar);
     std::cout << "passed third warmup barrier in tsetup(), thread_id:  " << _thd_id << std::endl;
+
+    if (_thd_id == 0) {
+        DEBUG("Thread 0 is back from setup\n");
+    }
 
 }
 
