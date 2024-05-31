@@ -1,4 +1,4 @@
-## Progress (Peter)
+## Progress (Peter Yao)
 - [x] The recv loop of the sending proxy
 - [x] Now that we have created more than just client and replica, we need to redesign the way the sockets are initialized at the transport layer. Who should have how many sockets for what
 - [x] The send loop (output threads of the sending proxy) of the sending proxy
@@ -14,6 +14,8 @@
 - [x] send the msg to the replica when the time has come
 - [x] when dispatching requests from the recv proxies to the replicas, the hash of the batch needs to be taken care of, which is left unhandled for now.
 - [ ] Should have started a separate thread just spinning around to handle the overdue messages to reduce latency. 
+- [ ] The deadline prediction oracle is taking way too much more time than it really should, about 5 millisecond (I assume that the syscall to get the current time is expensive, which involves a context switch)
+- [ ] If the performance is still not good enough, consider using a lock free or highly concurrent priority queue from a certain external library 
 
 ## Long term TODO
 

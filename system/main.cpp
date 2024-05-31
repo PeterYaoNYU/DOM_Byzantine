@@ -24,6 +24,7 @@ void *run_thread(void *);
 WorkerThread *worker_thds;
 InputThread *input_thds;
 OutputThread *output_thds;
+CheckThread *check_thds;
 
 // defined in parser.cpp
 void parser(int argc, char *argv[]);
@@ -238,6 +239,18 @@ int main(int argc, char *argv[])
     uint64_t wthd_cnt = thd_cnt;
     uint64_t rthd_cnt = g_rem_thread_cnt;
     uint64_t sthd_cnt = g_send_thread_cnt;
+    uint64_t cthd_cnt;
+    
+    // if this node is a recv proxy
+    if (g_node_id >= g_node_cnt + g_client_node_cnt + g_send_proxy_cnt) 
+    {
+        cthd_cnt = g_check_pq_thd_cnt;
+    }
+    else // not a recv proxy
+    {
+        cthd_cnt = 0;
+    }
+
     uint64_t all_thd_cnt = thd_cnt + rthd_cnt + sthd_cnt;
 
     assert(all_thd_cnt == g_this_total_thread_cnt);
@@ -250,6 +263,7 @@ int main(int argc, char *argv[])
     worker_thds = new WorkerThread[wthd_cnt];
     input_thds = new InputThread[rthd_cnt];
     output_thds = new OutputThread[sthd_cnt];
+    check_thds = 
 
     endtime = get_server_clock();
     printf("Initialization Time = %ld\n", endtime - starttime);

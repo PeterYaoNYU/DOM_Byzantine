@@ -39,6 +39,7 @@ Client_txn client_man;
 
 // DOM related variables
 std::mutex recv_proxy_txn_assignment_mtx;
+UInt32 g_check_pq_thd_cnt = 3;
 
 bool volatile warmup_done = false;
 bool volatile enable_thread_mem_pool = false;

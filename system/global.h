@@ -91,6 +91,9 @@ extern ThreadSafePriorityQueue deadline_pq;
 // peter: ensures that when assigning txn and batch id and next_set, there will not be contention
 extern std::mutex recv_proxy_txn_assignment_mtx;
 
+// peter: the number of threads that check how many deadlines have passed
+extern UInt32 g_check_pq_thd_cnt;
+
 /******************************************/
 // Global Data Structure
 /******************************************/
