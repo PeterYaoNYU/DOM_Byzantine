@@ -92,7 +92,8 @@ RC CheckThread::dispatch_request_to_replicas(DeadlinePQObj *deadline_pq_obj)
         breq->hash = calculateHash(batchStr);
         breq->hashSize = breq->hash.length();
         breq->requestMsg[i]= yqry;
-        breq->index.add(msg->txn_id+i);
+        // this part is tricky
+        breq->index.add(msg->txn_id+i - get_batch_size());
     } 
 
     // fill the return node: the client to get back to, who will be doing the linearization and the vote check

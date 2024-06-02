@@ -71,6 +71,7 @@ void QWorkQueue::enqueue(uint64_t thd_id, Message *msg, bool busy)
         // Execution Map using [indexSize] queues
         uint64_t queue_id = (msg->txn_id / get_batch_size()) % indexSize;
         push_to_queue(entry, execution_queues[queue_id]);
+        DEBUG("Queue: enqueue the execute msg to queue %ld, txn_id: %ld\n", queue_id, msg->txn_id);
     }
     else if (msg->rtype == PBFT_CHKPT_MSG)
     {

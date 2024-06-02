@@ -1436,6 +1436,8 @@ void WorkerThread::set_txn_man_fields(BatchRequests *breq, uint64_t bid)
     {
         txn_man = get_transaction_manager(breq->index[i], bid);
 
+        DEBUG("Worker Thread: txn man id: %ld, breq index[i], %ld\n", txn_man->get_txn_id(), breq->index[i]);
+
         unset_ready_txn(txn_man);
 
         txn_man->register_thread(this);
