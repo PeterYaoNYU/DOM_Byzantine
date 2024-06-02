@@ -1253,11 +1253,12 @@ RC WorkerThread::process_execute_msg(Message *msg)
 #else
     crsp->hash = txn_man->get_hash();
     crsp->hashSize = crsp->hash.length();
-    // cout << txn_man->get_txn_id() << "   " << hexStr(txn_man->get_hash().c_str(), txn_man->get_hash().length()) << endl;
+    cout << "Client response Message: " << txn_man->get_txn_id() << "   " << hexStr(txn_man->get_hash().c_str(), txn_man->get_hash().length()) << endl;
     crsp->copy_from_txn(txn_man);
 
     vector<uint64_t> dest;
     dest.push_back(txn_man->client_id);
+    DEBUG("Sending Client response back to return ID: %ld\n", txn_man->client_id);
     msg_queue.enqueue(get_thd_id(), crsp, dest);
     dest.clear();
 #endif

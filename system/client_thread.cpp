@@ -270,7 +270,7 @@ RC ClientThread::run()
 				batchStr += bmsg->cqrySet[i]->getString();
 			}
 			string hash = calculateHash(batchStr);
-			// cout << next_node_id << "   " << hexStr(hash.c_str(), hash.length()) << endl;
+			cout << "client query hash:" << "   " << hexStr(hash.c_str(), hash.length()) << endl;
 			client_responses_count.add(hash, 0);
 
 #if TIMER_ON
