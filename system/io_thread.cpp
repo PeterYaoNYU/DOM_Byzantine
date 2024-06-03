@@ -243,7 +243,8 @@ RC InputThread::client_recv_loop()
 
             if (response_count == required_responses && success)
             {
-                DEBUG("Fast path finally taken: %ld\n", clrsp->txn_id);
+                printf("Fast path finally taken: %ld\n", clrsp->txn_id);
+                fflush(stdout);
                 // If true, set this as the next transaction completed.
                 set_last_valid_txn(msg->txn_id);
 

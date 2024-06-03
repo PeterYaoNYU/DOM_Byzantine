@@ -24,7 +24,7 @@ std::vector<Message *> *Message::create_messages(char *buf)
 	assert(return_id != g_node_id);
 
 	// peter: debugging
-	printf("create_messages: %d. ret id: %d %d\n", dest_id, return_id, txn_cnt);
+	// printf("create_messages: %d. ret id: %d %d\n", dest_id, return_id, txn_cnt);
 	// if (!ISCLIENTN(return_id))
 	// {
 	// 	printf("return id not a client \n");
