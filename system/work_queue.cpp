@@ -83,6 +83,12 @@ void QWorkQueue::enqueue(uint64_t thd_id, Message *msg, bool busy)
         push_to_queue(entry, gbft_ccm_queue);
     }
 #endif
+    else if (msg->rtype == CL_RSP)
+    {
+        auto crsp = (ClientResponseMessage *)msg;
+        cout << "Receiving Client Response Message with Hash:   " << hexStr(crsp->hash.c_str(), crsp->hashSize) << endl;
+        push_to_queue(entry, work_queue);
+    }
     else
     {
         push_to_queue(entry, work_queue);
