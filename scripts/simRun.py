@@ -16,7 +16,7 @@ from hostnames import *
 import socket
 
 dashboard = None
-home_directory = "/home/ubuntu"
+home_directory = "/home/dqian"
 PATH = os.getcwd()
 #result_dir = PATH + "/results/"
 result_dir = home_directory+"/resilientdb/results/"
@@ -42,7 +42,7 @@ print(cmd)
 os.system(cmd)
 cmd = './vcloud_cmd.sh \"{}\" \"pkill -f \'runcl\'\"'.format(' '.join(machines))
 print(cmd)
-# cmd = './vcloud_cmd.sh \"{}\" \"mkdir -p \'resilientdb\'\"'.format(' '.join(machines))
+cmd = './vcloud_cmd.sh \"{}\" \"mkdir -p \'resilientdb\'\"'.format(' '.join(machines))
 # print(cmd)
 os.system(cmd)
 

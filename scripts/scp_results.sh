@@ -1,6 +1,6 @@
 #!/bin/bash
-USERNAME=ubuntu
-home_directory="/home/ubuntu"
+USERNAME="$USER"
+home_directory="/home/$USERNAME"
 nodes=$1
 name=$2
 result_dir=$3

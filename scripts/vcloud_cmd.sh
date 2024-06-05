@@ -1,5 +1,5 @@
 #!/bin/bash
-USERNAME=ubuntu
+USERNAME="$USER"
 HOSTS="$1"
 SCRIPT="$2"
 count=0
