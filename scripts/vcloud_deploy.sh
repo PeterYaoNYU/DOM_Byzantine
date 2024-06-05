@@ -10,10 +10,10 @@ for HOSTNAME in ${HOSTS}; do
 	i=1
 	if [ $count -ge $NODE_CNT ]; then
 		i=0
-	    SCRIPT="ulimit -n 4096;./runcl -nid${count} > ${RES_FILE}${count}.out 2>&1"
+	    SCRIPT="cd resilientdb; ulimit -n 4096;./runcl -nid${count} > ${RES_FILE}${count}.out 2>&1"
 	    echo "${HOSTNAME}: runcl ${count}"
 	else
-	    SCRIPT="ulimit -n 4096;./rundb -nid${count} > ${RES_FILE}${count}.out 2>&1"
+	    SCRIPT="cd resilientdb; ulimit -n 4096;./rundb -nid${count} > ${RES_FILE}${count}.out 2>&1"
 	fi
 	
 	ssh -n -o BatchMode=yes -o StrictHostKeyChecking=no -l ${USERNAME} ${HOSTNAME} "${SCRIPT}" &

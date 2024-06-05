@@ -38,12 +38,12 @@ mach = hostmach
 
 #	# check all rundb/runcl are killed
 cmd = './vcloud_cmd.sh \"{}\" \"pkill -f \'rundb\'\"'.format(' '.join(machines))
-print(cmd)
 os.system(cmd)
 cmd = './vcloud_cmd.sh \"{}\" \"pkill -f \'runcl\'\"'.format(' '.join(machines))
-print(cmd)
+os.system(cmd)
 cmd = './vcloud_cmd.sh \"{}\" \"mkdir -p \'resilientdb\'\"'.format(' '.join(machines))
-# print(cmd)
+os.system(cmd)
+cmd = './vcloud_cmd.sh \"{}\" \"mkdir -p \'resilientdb/results\'\"'.format(' '.join(machines))
 os.system(cmd)
 
 # if run == 0:
