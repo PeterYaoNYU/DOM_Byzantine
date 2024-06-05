@@ -6,7 +6,6 @@
 #include "stats_array.h"
 #include <time.h>
 #include <sys/times.h>
-#include <sys/vtimes.h>
 
 void Stats_thd::init(uint64_t thd_id)
 {

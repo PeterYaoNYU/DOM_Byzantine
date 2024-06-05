@@ -72,7 +72,7 @@ done
 echo "]" >>hostnames.py
 
 # Compiling the Code
-# make clean; make -j8
+make clean; make -j8
 
 tm=0
 
