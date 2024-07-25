@@ -15,11 +15,3 @@ do
 done < "$input"
 wait
 
-i=0
-while IFS= read -r line
-do
-	cmd="ssh ${USERNAME}@${line} rm -f ${home_directory}/resilientdb/*;"
-	$($cmd) &
-	i=$(($i+1))
-done < "$input"
-wait
