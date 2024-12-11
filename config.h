@@ -15,7 +15,7 @@
 #define CORE_CNT 8
 #define PART_CNT 1
 // Specify the number of clients.
-#define CLIENT_NODE_CNT 1
+#define CLIENT_NODE_CNT 8
 // #define CLIENT_THREAD_CNT 2
 // #define CLIENT_REM_THREAD_CNT 1
 #define CLIENT_THREAD_CNT 1
@@ -50,7 +50,7 @@
 #define TIME_PROF_ENABLE false
 #define FIN_BY_TIME true
 // Number of transactions each client should send without waiting.
-#define MAX_TXN_IN_FLIGHT 7000
+#define MAX_TXN_IN_FLIGHT 10000
 #define SERVER_GENERATE_QUERIES false
 #define MEM_ALLIGN 8
 #define THREAD_ALLOC false
@@ -149,7 +149,7 @@
 // Enable or Disable pipeline at primary replica.
 #define ENABLE_PIPELINE true
 // Size of each batch.
-#define BATCH_SIZE 100
+#define BATCH_SIZE 10
 #define BATCH_ENABLE BSET
 #define BSET 1
 #define BUNSET 0
