@@ -228,6 +228,8 @@ RC ClientThread::run()
 			string batchStr = "";
 			for (uint64_t i = 0; i < get_batch_size(); i++)
 			{
+				printf("Client Query Message Size %lu\n", bmsg->cqrySet[i]->get_size());
+
 				batchStr += bmsg->cqrySet[i]->getString();
 			}
 			string hash = calculateHash(batchStr);
@@ -244,7 +246,7 @@ RC ClientThread::run()
 			delete_msg_buffer(buf);
 #endif // TIMER_ON
 
-			DEBUG("Client Batch Message Size %lu\n", bmsg->get_size());
+			printf("Client Batch Message Size %lu\n", bmsg->get_size());
 
 			msg_queue.enqueue(get_thd_id(), bmsg, {next_node_id});
 

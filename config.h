@@ -2,7 +2,7 @@
 #define _CONFIG_H_
 // Specify the number of servers or replicas
 #define NODE_CNT 4
-// Number of worker threads at primary. 
+// Number of worker threads at primary.
 #define THREAD_CNT 5 // This Should be the sum of following thread count + protocol specifig threads
 #define WORKER_THREAD_CNT 1
 #define BATCH_THREAD_CNT 2
@@ -15,11 +15,11 @@
 #define CORE_CNT 8
 #define PART_CNT 1
 // Specify the number of clients.
-#define CLIENT_NODE_CNT 8
+#define CLIENT_NODE_CNT 1
 // #define CLIENT_THREAD_CNT 2
 // #define CLIENT_REM_THREAD_CNT 1
 #define CLIENT_THREAD_CNT 1
-#define CLIENT_REM_THREAD_CNT 1 
+#define CLIENT_REM_THREAD_CNT 1
 #define CLIENT_SEND_THREAD_CNT 1
 #define CLIENT_RUNTIME false
 
@@ -27,7 +27,7 @@
 
 #define ZYZ false
 
-// GeoBFT Setting 
+// GeoBFT Setting
 #define GBFT false
 #define GBFT_CLUSTER_SIZE 4
 #define GBFT_CCM_THREAD_CNT 1
@@ -50,7 +50,7 @@
 #define TIME_PROF_ENABLE false
 #define FIN_BY_TIME true
 // Number of transactions each client should send without waiting.
-#define MAX_TXN_IN_FLIGHT 10000
+#define MAX_TXN_IN_FLIGHT 1000
 #define SERVER_GENERATE_QUERIES false
 #define MEM_ALLIGN 8
 #define THREAD_ALLOC false
@@ -139,17 +139,16 @@
 #define REPLICATED 1
 // To select the amount of time to warmup and run.
 #define DONE_TIMER 60 * BILLION
-#define WARMUP_TIMER  15 * BILLION
+#define WARMUP_TIMER 15 * BILLION
 // Select the consensus algorithm to run.
 #define CONSENSUS PBFT
 #define PBFT 2
 #define ZYZZYVA 3
 
-
 // Enable or Disable pipeline at primary replica.
 #define ENABLE_PIPELINE true
 // Size of each batch.
-#define BATCH_SIZE 10
+#define BATCH_SIZE 8
 #define BATCH_ENABLE BSET
 #define BSET 1
 #define BUNSET 0
@@ -162,7 +161,7 @@
 #define ENABLE_CHAIN false
 // To fail non-primary replicas.
 #define LOCAL_FAULT false
-#define NODE_FAIL_CNT 1
+#define NODE_FAIL_CNT 0
 // To allow view changes.
 #define VIEW_CHANGES false
 // The amount of timeout value.
@@ -170,9 +169,9 @@
 #define CEXE_TIMEOUT 5 * BILLION
 // To turn the timer on.
 #define TIMER_ON false
-//Global variables to choose the encryptation algorithm
+// Global variables to choose the encryptation algorithm
 #define USE_CRYPTO true
-#define CRYPTO_METHOD_RSA false     //Options RSA,
+#define CRYPTO_METHOD_RSA false     // Options RSA,
 #define CRYPTO_METHOD_ED25519 true  // Option ED25519
 #define CRYPTO_METHOD_CMAC_AES true // CMAC<AES>
 // Test cases to check basic functioning.
@@ -203,4 +202,3 @@
 #define BANKING_SMART_CONTRACT false
 
 #endif
-
